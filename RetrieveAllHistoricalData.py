@@ -55,7 +55,6 @@ default_dates = [*r2013, *r2014, *r2015, *r2016, *r2017, *r2018]
 fetched_data = dict()
 total_mc = 0
 BASE_URL = 'https://coinmarketcap.com/historical/'
-# total_length = len(retrieve)
 json_tempfile = 'json_historical_20180304.json'
 numpy_tempfile = 'numpy_historical_20180225.npy'
 csv_tempfile = 'csv_historical_20180225.csv'
@@ -74,7 +73,6 @@ def retrieve_and_cache(dates=default_dates, outfile=None, cachefile=None, rforma
     else:
         raise ValueError("Please enter a valid rformat. Valid values are 'json', 'numpy', and 'csv'.")
     print('writing.........................')
-    # time.sleep(5)
     write_to_file(result, outfile, rformat)
     result = read_from_file(outfile, rformat)
     return result
@@ -97,13 +95,10 @@ def retrieve(dates=default_dates, file=None):
 
     total_length = len(dates)
     for i in range(total_length):
-        # print(i, dates)
         # Retrieve data from coinmarketcap.com and find all token entries (next 3 lines)
         response = requests.get(BASE_URL + str(dates[i]))
         soup = bs4.BeautifulSoup(response.content, 'html.parser')
-        # print(soup)
         tr = soup.find_all('tr')
-        # print(tr)
         # Parses the all coins which should be more than enough to find the top 10 PoS (0th entry is dummy)
         for y in range(1, len(tr)):
             td = tr[y].find_all('td')
@@ -127,14 +122,9 @@ def retrieve(dates=default_dates, file=None):
                 fetched_data[dates[i]][rank]["24hr_vol"] = int(td[6].get_text().strip('$' + whitespace).replace(',', ''))
             except:
                 fetched_data[dates[i]][rank]["24hr_vol"] = td[6].get_text().strip('$' + whitespace).replace(',', '')
-        # print(dates[i])
-        # for x in fetched_data:
-        #     print(x)
-        #     for y in fetched_data[x]:
-        #         print('\t', y, ' : ', fetched_data[x][y])
         # Coinmarketcap asks that you don't submit more that 10 requests per minute, feel free to remove if you
         # give no fucks
-        time.sleep(1)
+        time.sleep(6)
     return fetched_data.copy()
 
 
@@ -240,7 +230,6 @@ if __name__ == '__main__':
     # temp = read_from_file('json_historical_20180408.json', rformat='json')
     # print(temp)
     # print(temp['20130428'])
-    # sett = set()
     # print(temp)
     # for x in temp:
     #     print(x)
@@ -248,7 +237,6 @@ if __name__ == '__main__':
     #         # sett.add(temp[x][y]['24hr_vol'])
     #         print('\t', y, ' : ', temp[x][y])
 
-    # print(sett)
     for x in range(len(temp)):
         print(str(default_dates[x]), isinstance(default_dates[x], int))
         for y in temp[str(default_dates[x])]:
@@ -257,3 +245,5 @@ if __name__ == '__main__':
     # for x in json_to_numpy(file=json_tempfile)[-1]:
     #     print(x)
     # print(json_to_numpy(file=json_tempfile)[-1])
+
+# TODO csv_to_json
