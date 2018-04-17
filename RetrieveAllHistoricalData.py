@@ -55,15 +55,15 @@ default_dates = [*r2013, *r2014, *r2015, *r2016, *r2017, *r2018]
 fetched_data = dict()
 total_mc = 0
 BASE_URL = 'https://coinmarketcap.com/historical/'
-json_tempfile = 'json_historical_20180304.json'
+json_tempfile = 'json_historical_20180408.json'
 numpy_tempfile = 'numpy_historical_20180225.npy'
-csv_tempfile = 'csv_historical_20180225.csv'
+csv_tempfile = 'csv_historical_20180408.csv'
 NUM_ATTRIBUTES = 7
 
 
-def retrieve_and_cache(dates=default_dates, outfile=None, cachefile=None, rformat='json'):
+def retrieve_and_cache(dates=default_dates, outfile=None, cachefile=None, rformat='json', wformat='json'):
     # If a cachefile is passed in then that one is checked for the dates, if not the
-    result = retrieve(dates, cachefile)
+    result = retrieve(dates, cachefile, rformat)
     if rformat == 'json':
         pass
     elif rformat == 'numpy':
@@ -73,20 +73,20 @@ def retrieve_and_cache(dates=default_dates, outfile=None, cachefile=None, rforma
     else:
         raise ValueError("Please enter a valid rformat. Valid values are 'json', 'numpy', and 'csv'.")
     print('writing.........................')
-    write_to_file(result, outfile, rformat)
-    result = read_from_file(outfile, rformat)
+    write_to_file(result, outfile, wformat)
+    result = read_from_file(outfile, wformat)
     return result
 
 
-def retrieve(dates=default_dates, file=None):
+def retrieve(dates=default_dates, file=None, rformat=None):
     missing = list()
     global fetched_data
 
     if file is not None:
-        fetched_data = read_from_file(file)
+        fetched_data = read_from_file(file, rformat)
         for x in dates:
             if str(x) not in fetched_data:
-                missing.append(x)
+                missing.append(str(x))
         if len(missing) == 0:
             return fetched_data
         else:
@@ -141,7 +141,7 @@ def write_to_file(data=None, file=None, wformat='json'):
         np.save(file, data)
     elif wformat == 'csv':
         with open(file, 'w') as f:
-            f.write(data)
+            f.write(json_to_csv(data))
     else:
         raise ValueError("Please enter a valid rformat. Valid values are 'json', 'numpy', and 'csv'.")
 
@@ -159,6 +159,7 @@ def read_from_file(file=None, rformat='json'):
     elif rformat == 'csv':
         with open(file, 'r') as f:
             contents = f.read()
+            contents = csv_to_json(contents)
             return contents
     else:
         raise ValueError("Please enter a valid rformat. Valid values are 'json', 'numpy', and 'csv'.")
@@ -224,10 +225,37 @@ def json_to_csv(data=None, file=None):
     return output
 
 
+def csv_to_json(data=None):
+    """ Takes properly formatted csv data and returns it in json format """
+    converted = dict()
+    # base_date = re.compile(r'base,date')
+    # currency = re.compile(r'[A-Z]{3},{1}[0-9,.]+')
+    base = None
+    # date = None
+    for line in data.splitlines():
+        split = line.split(',')
+        if len(split) == 1:
+            # base, date = line.split(',')[2:]
+            # if line not in converted:
+            base = split[0]
+            converted[base] = dict()
+            continue
+        else:
+            # items = line.split(',')
+            converted[base][split[0]] = dict()
+            converted[base][split[0]]['symbol'] = split[1]
+            converted[base][split[0]]['name'] = split[2]
+            converted[base][split[0]]['market_cap'] = split[3]
+            converted[base][split[0]]['price'] = split[4]
+            converted[base][split[0]]['circulating_supply'] = split[5]
+            converted[base][split[0]]['24hr_vol'] = split[6]
+    return converted
+
+
 if __name__ == '__main__':
     # temp1 = read_from_file(json_tempfile)
-    temp = retrieve_and_cache(default_dates, 'json_historical_20180408.json', json_tempfile, rformat='json')
-    # temp = read_from_file('json_historical_20180408.json', rformat='json')
+    # temp = retrieve_and_cache(default_dates, 'csv_historical_20180408.csv', json_tempfile, rformat='json', wformat='csv')
+    temp = read_from_file('csv_historical_20180408.csv', rformat='csv')
     # print(temp)
     # print(temp['20130428'])
     # print(temp)
@@ -246,4 +274,4 @@ if __name__ == '__main__':
     #     print(x)
     # print(json_to_numpy(file=json_tempfile)[-1])
 
-# TODO csv_to_json
+# TODO csv write acting weird
