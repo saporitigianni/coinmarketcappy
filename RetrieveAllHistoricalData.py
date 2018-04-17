@@ -51,36 +51,61 @@ r2018 = [20180107, 20180114, 20180121, 20180128, 20180204, 20180211,
          20180401, 20180408, 20180415]
 default_dates = [*r2013, *r2014, *r2015, *r2016, *r2017, *r2018]
 BASE_URL = 'https://coinmarketcap.com/historical/'
+RATE_LIMIT = 6
 
 
 def retrieve_and_cache(dates=default_dates, out_file=None, cache_file=None, rformat='json', wformat='json'):
-    # If a cache_file is passed in then that one is checked for the dates, if not the
-    result = retrieve(dates, cache_file, rformat)
-    if (len(result) == 2) and ((out_file == cache_file) and (rformat == wformat)):
-        return result[0]
-    else:
-        if len(result) == 2:
-            result = result[0]
+    """
+    Retrieves all the data from the specified file or coinmarketcap.com and caches it to a local file
+    for faster subsequent access times
 
-        print('writing...')
-        write_to_file(result, out_file, wformat)
-        result = read_from_file(out_file, wformat)
-        return result
+    :param dates: dates to retrieve data for
+    :param out_file: file to write the requested data to
+    :param cache_file: file to check for some or all of the requested dates
+    :param rformat: format of the cache file to check
+    :param wformat: format output file to write to
+    :return: json format data
+    """
+    # Retrieves data, caches it to a file and reads from it before returning
+    result = retrieve(dates, cache_file, rformat)
+    print('writing to file...')
+    write_to_file(result, out_file, wformat)
+    result = read_from_file(out_file, wformat)
+    return result
 
 
 def retrieve(dates=default_dates, file=None, rformat=None):
+    """
+    Retrieves data from file if available or coinmarketcap.com
+
+    :param dates: dates to retrieve data for
+    :param file: cache file to check for some or all of the requested dates
+    :param rformat: format of the cache file to check
+    :return: json format data
+    """
     missing = list()
     fetched_data = dict()
 
     if file is not None:
         fetched_data = read_from_file(file, rformat)
+        # Figure out what dates are missing
         for x in dates:
             if str(x) not in fetched_data:
-                missing.append(str(x))
+                missing.append(x)
+        # If none are missing then return only the requested dates
         if len(missing) == 0:
-            return fetched_data, '-1, file up to date'
+            final_fetched = dict()
+            for x in dates:
+                final_fetched[str(x)] = fetched_data[str(x)].copy()
+            return final_fetched.copy()
+        # If there are missing dates, retrieve the ones that are present from the file
+        # and make a list of the missing ones as strings
         else:
-            dates = missing
+            temp = dict()
+            for x in set(dates).difference(set(missing)):
+                temp[str(x)] = fetched_data[str(x)].copy()
+            fetched_data = temp.copy()
+            dates = [str(x) for x in missing]
         print('{} dates missing from the specified cache file...'.format(len(dates)))
 
     total_length = len(dates)
@@ -95,6 +120,7 @@ def retrieve(dates=default_dates, file=None, rformat=None):
             td = tr[y].find_all('td')
             rank = td[0].get_text().strip()
             symbol, name = td[1].get_text().strip().lower().split('\n')
+            # Add dates and token info broken into categories (rest of function)
             if dates[i] not in fetched_data:
                 fetched_data[dates[i]] = dict()
             fetched_data[dates[i]][rank] = dict()
@@ -115,11 +141,19 @@ def retrieve(dates=default_dates, file=None, rformat=None):
                 fetched_data[dates[i]][rank]["24hr_vol"] = td[6].get_text().strip('$' + whitespace).replace(',', '')
         # Coinmarketcap asks that you don't submit more that 10 requests per minute, hence the 6 second sleep
         # remove/reduce if you need to download a large number of dates that would take forever otherwise
-        time.sleep(6)
+        time.sleep(RATE_LIMIT)
     return fetched_data.copy()
 
 
 def write_to_file(data=None, file=None, wformat='json'):
+    """
+    Writes json or csv data to file
+
+    :param data: json format data to write to file
+    :param file: file to write to
+    :param wformat: format to write to file on
+    :return: None
+    """
     if data is None:
         raise Exception('Data missing. Please specify the data to write to file.')
     if file is None:
@@ -136,7 +170,13 @@ def write_to_file(data=None, file=None, wformat='json'):
 
 
 def read_from_file(file=None, rformat='json'):
-    """ Reads from file and converts to json format if it isn't already """
+    """
+    Reads from file and converts to json format if it isn't already
+
+    :param file: file to read from
+    :param rformat: format of the file
+    :return: the data retrieved from file
+    """
     if file is None:
         raise Exception('File name missing. Please specify the name of a file to read from.')
 
@@ -154,7 +194,12 @@ def read_from_file(file=None, rformat='json'):
 
 
 def json_to_csv(data=None):
-    """ Specify data to convert to csv format (not both)"""
+    """
+    Specify data to convert to csv format (not both)
+
+    :param data: json formatted data to convert to csv format
+    :return: csv format data
+    """
     # Verifies that one and only one of the input types is specified
     if data is None:
         raise ValueError('Data missing. Please specify the data to convert.')
@@ -179,7 +224,12 @@ def json_to_csv(data=None):
 
 
 def csv_to_json(data=None):
-    """ Takes properly formatted csv data and returns it in json format """
+    """
+    Takes properly formatted csv data and returns it in json format
+
+    :param data: csv formatted data to convert to json format
+    :return: json format data
+    """
     if data is None:
         raise ValueError('Data missing. Please specify the data to convert.')
 
@@ -203,8 +253,8 @@ def csv_to_json(data=None):
 
 
 if __name__ == '__main__':
-    temp = retrieve_and_cache(default_dates, 'historical_20180415.csv', 'historical_20180304.json',
-                              rformat='json', wformat='csv')
+    temp = retrieve_and_cache(default_dates, 'historical_20180415.json', 'historical_20180415.json',
+                              rformat='json', wformat='json')
     # temp = read_from_file('csv_historical_20180408.csv', rformat='csv')
     # print(temp)
 
