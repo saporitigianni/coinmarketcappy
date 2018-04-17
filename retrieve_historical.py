@@ -51,6 +51,8 @@ r2018 = [20180107, 20180114, 20180121, 20180128, 20180204, 20180211,
          20180401, 20180408, 20180415]
 default_dates = [*r2013, *r2014, *r2015, *r2016, *r2017, *r2018]
 BASE_URL = 'https://coinmarketcap.com/historical/'
+# Coinmarketcap asks that you don't submit more that 10 requests per minute, hence the 6 second sleep.
+# Remove/reduce if you need to download a large number of dates that would take forever otherwise.
 RATE_LIMIT = 6
 
 
@@ -71,7 +73,7 @@ def retrieve_and_cache(dates=default_dates, out_file=None, cache_file=None, rfor
     print('writing to file...')
     write_to_file(result, out_file, wformat)
     result = read_from_file(out_file, wformat)
-    return result
+    return result.copy()
 
 
 def retrieve(dates=default_dates, file=None, rformat=None):
@@ -139,8 +141,6 @@ def retrieve(dates=default_dates, file=None, rformat=None):
                 fetched_data[dates[i]][rank]["24hr_vol"] = int(td[6].get_text().strip('$' + whitespace).replace(',', ''))
             except:
                 fetched_data[dates[i]][rank]["24hr_vol"] = td[6].get_text().strip('$' + whitespace).replace(',', '')
-        # Coinmarketcap asks that you don't submit more that 10 requests per minute, hence the 6 second sleep
-        # remove/reduce if you need to download a large number of dates that would take forever otherwise
         time.sleep(RATE_LIMIT)
     return fetched_data.copy()
 
