@@ -2,9 +2,7 @@ import bs4
 import requests
 import time
 import json
-import numpy as np
 from string import whitespace
-
 
 r2013 = [20130428, 20130505, 20130512, 20130519, 20130526, 20130602,
          20130609, 20130616, 20130623, 20130630, 20130707, 20130714,
@@ -50,37 +48,29 @@ r2017 = [20170101, 20170108, 20170115, 20170122, 20170129, 20170205,
          20171203, 20171210, 20171217, 20171224, 20171231]
 r2018 = [20180107, 20180114, 20180121, 20180128, 20180204, 20180211,
          20180218, 20180225, 20180304, 20180311, 20180318, 20180325,
-         20180401, 20180408]
+         20180401, 20180408, 20180415]
 default_dates = [*r2013, *r2014, *r2015, *r2016, *r2017, *r2018]
-fetched_data = dict()
-total_mc = 0
 BASE_URL = 'https://coinmarketcap.com/historical/'
-json_tempfile = 'json_historical_20180408.json'
-numpy_tempfile = 'numpy_historical_20180225.npy'
-csv_tempfile = 'csv_historical_20180408.csv'
-NUM_ATTRIBUTES = 7
 
 
-def retrieve_and_cache(dates=default_dates, outfile=None, cachefile=None, rformat='json', wformat='json'):
-    # If a cachefile is passed in then that one is checked for the dates, if not the
-    result = retrieve(dates, cachefile, rformat)
-    if rformat == 'json':
-        pass
-    elif rformat == 'numpy':
-        result = json_to_numpy(result.copy())
-    elif rformat == 'csv':
-        result = json_to_csv(result.copy())
+def retrieve_and_cache(dates=default_dates, out_file=None, cache_file=None, rformat='json', wformat='json'):
+    # If a cache_file is passed in then that one is checked for the dates, if not the
+    result = retrieve(dates, cache_file, rformat)
+    if (len(result) == 2) and ((out_file == cache_file) and (rformat == wformat)):
+        return result[0]
     else:
-        raise ValueError("Please enter a valid rformat. Valid values are 'json', 'numpy', and 'csv'.")
-    print('writing.........................')
-    write_to_file(result, outfile, wformat)
-    result = read_from_file(outfile, wformat)
-    return result
+        if len(result) == 2:
+            result = result[0]
+
+        print('writing...')
+        write_to_file(result, out_file, wformat)
+        result = read_from_file(out_file, wformat)
+        return result
 
 
 def retrieve(dates=default_dates, file=None, rformat=None):
     missing = list()
-    global fetched_data
+    fetched_data = dict()
 
     if file is not None:
         fetched_data = read_from_file(file, rformat)
@@ -88,13 +78,14 @@ def retrieve(dates=default_dates, file=None, rformat=None):
             if str(x) not in fetched_data:
                 missing.append(str(x))
         if len(missing) == 0:
-            return fetched_data
+            return fetched_data, '-1, file up to date'
         else:
             dates = missing
-        print('{} dates missing from the specified cache file.'.format(len(dates)))
+        print('{} dates missing from the specified cache file...'.format(len(dates)))
 
     total_length = len(dates)
     for i in range(total_length):
+        print('Retrieving {}'.format(dates[i]))
         # Retrieve data from coinmarketcap.com and find all token entries (next 3 lines)
         response = requests.get(BASE_URL + str(dates[i]))
         soup = bs4.BeautifulSoup(response.content, 'html.parser')
@@ -122,8 +113,8 @@ def retrieve(dates=default_dates, file=None, rformat=None):
                 fetched_data[dates[i]][rank]["24hr_vol"] = int(td[6].get_text().strip('$' + whitespace).replace(',', ''))
             except:
                 fetched_data[dates[i]][rank]["24hr_vol"] = td[6].get_text().strip('$' + whitespace).replace(',', '')
-        # Coinmarketcap asks that you don't submit more that 10 requests per minute, feel free to remove if you
-        # give no fucks
+        # Coinmarketcap asks that you don't submit more that 10 requests per minute, hence the 6 second sleep
+        # remove/reduce if you need to download a large number of dates that would take forever otherwise
         time.sleep(6)
     return fetched_data.copy()
 
@@ -137,16 +128,15 @@ def write_to_file(data=None, file=None, wformat='json'):
     if wformat == 'json':
         with open(file, 'w') as f:
             json.dump(data, f, ensure_ascii=False)
-    elif wformat == 'numpy':
-        np.save(file, data)
     elif wformat == 'csv':
         with open(file, 'w') as f:
             f.write(json_to_csv(data))
     else:
-        raise ValueError("Please enter a valid rformat. Valid values are 'json', 'numpy', and 'csv'.")
+        raise ValueError("Please enter a valid wformat. Valid values are 'json' and 'csv'.")
 
 
 def read_from_file(file=None, rformat='json'):
+    """ Reads from file and converts to json format if it isn't already """
     if file is None:
         raise Exception('File name missing. Please specify the name of a file to read from.')
 
@@ -154,94 +144,54 @@ def read_from_file(file=None, rformat='json'):
         with open(file, 'r') as f:
             contents = f.read()
             return json.loads(contents)
-    elif rformat == 'numpy':
-        return np.load(file)
     elif rformat == 'csv':
         with open(file, 'r') as f:
             contents = f.read()
             contents = csv_to_json(contents)
             return contents
     else:
-        raise ValueError("Please enter a valid rformat. Valid values are 'json', 'numpy', and 'csv'.")
+        raise ValueError("Please enter a valid rformat. Valid values are 'json' and 'csv'.")
 
 
-def json_to_numpy(data=None, file=None):
+def json_to_csv(data=None):
+    """ Specify data to convert to csv format (not both)"""
+    # Verifies that one and only one of the input types is specified
     if data is None:
-        if file is None:
-            raise Exception('Data and file missing, please specify one (not both).')
-        else:
-            to_convert = read_from_file(file)
-    else:
-        if file is not None:
-            raise Exception('Both data and field specified. Please retry specifying only one.')
-        else:
-            to_convert = data
-    dates = list(to_convert.keys())
-    dates.sort()
+        raise ValueError('Data missing. Please specify the data to convert.')
 
-    max_row_len = max([len(to_convert[x]) for x in to_convert]) + 1
-    column_len = NUM_ATTRIBUTES
-    number_of_tables = len(to_convert)
-    table = np.full((number_of_tables, max_row_len, column_len), '', dtype=object)
-
-    for x in range(number_of_tables):
-        table[x, 0, 0] = dates[x]
-        for y in range(len(to_convert[dates[x]])):
-            table[x, y+1, 0] = y + 1
-            table[x, y+1, 1] = to_convert[dates[x]][str(y+1)]['symbol']
-            table[x, y+1, 2] = to_convert[dates[x]][str(y+1)]['name']
-            table[x, y+1, 3] = to_convert[dates[x]][str(y+1)]['market_cap']
-            table[x, y+1, 4] = to_convert[dates[x]][str(y+1)]['price']
-            table[x, y+1, 5] = to_convert[dates[x]][str(y+1)]['circulating_supply']
-            table[x, y+1, 6] = to_convert[dates[x]][str(y+1)]['24hr_vol']
-    return table.copy()
-
-
-def json_to_csv(data=None, file=None):
     output = ''
-    if data is None:
-        if file is None:
-            raise Exception('Data and file missing, please specify one (not both).')
-        else:
-            to_convert = read_from_file(file)
-    else:
-        if file is not None:
-            raise Exception('Both data and field specified. Please retry specifying only one.')
-        else:
-            to_convert = data
-    dates = list(to_convert.keys())
+    # Organizes the dates so that the output csv file is properly organized as well
+    dates = list(data.keys())
     dates.sort()
 
-    for x in to_convert:
+    # Goes through each date (outer loop) and each rank (inner) to convert to csv format
+    for x in data:
         output += x + '\n'
-        for y in to_convert[x]:
+        for y in data[x]:
             output += str(y) + ', '
-            output += to_convert[x][y]['symbol'] + ', '
-            output += to_convert[x][y]['name'] + ', '
-            output += str(to_convert[x][y]['market_cap']) + ', '
-            output += str(to_convert[x][y]['price']) + ', '
-            output += str(to_convert[x][y]['circulating_supply']) + ', '
-            output += str(to_convert[x][y]['24hr_vol']) + '\n'
+            output += data[x][y]['symbol'] + ', '
+            output += data[x][y]['name'] + ', '
+            output += str(data[x][y]['market_cap']) + ', '
+            output += str(data[x][y]['price']) + ', '
+            output += str(data[x][y]['circulating_supply']) + ', '
+            output += str(data[x][y]['24hr_vol']) + '\n'
     return output
 
 
 def csv_to_json(data=None):
     """ Takes properly formatted csv data and returns it in json format """
+    if data is None:
+        raise ValueError('Data missing. Please specify the data to convert.')
+
     converted = dict()
-    # base_date = re.compile(r'base,date')
-    # currency = re.compile(r'[A-Z]{3},{1}[0-9,.]+')
     base = None
-    # date = None
     for line in data.splitlines():
-        split = line.split(',')
+        split = [x.strip() for x in line.split(',')]
         if len(split) == 1:
-            # base, date = line.split(',')[2:]
-            # if line not in converted:
             base = split[0]
             converted[base] = dict()
             continue
         else:
-            # items = line.split(',')
             converted[base][split[0]] = dict()
             converted[base][split[0]]['symbol'] = split[1]
             converted[base][split[0]]['name'] = split[2]
@@ -253,25 +203,12 @@ def csv_to_json(data=None):
 
 
 if __name__ == '__main__':
-    # temp1 = read_from_file(json_tempfile)
-    # temp = retrieve_and_cache(default_dates, 'csv_historical_20180408.csv', json_tempfile, rformat='json', wformat='csv')
-    temp = read_from_file('csv_historical_20180408.csv', rformat='csv')
+    temp = retrieve_and_cache(default_dates, 'historical_20180415.csv', 'historical_20180304.json',
+                              rformat='json', wformat='csv')
+    # temp = read_from_file('csv_historical_20180408.csv', rformat='csv')
     # print(temp)
-    # print(temp['20130428'])
-    # print(temp)
-    # for x in temp:
-    #     print(x)
-    #     for y in temp[x]:
-    #         # sett.add(temp[x][y]['24hr_vol'])
-    #         print('\t', y, ' : ', temp[x][y])
 
-    for x in range(len(temp)):
-        print(str(default_dates[x]), isinstance(default_dates[x], int))
-        for y in temp[str(default_dates[x])]:
-            print('\t', y, ' : ', temp[str(default_dates[x])][y])
-
-    # for x in json_to_numpy(file=json_tempfile)[-1]:
-    #     print(x)
-    # print(json_to_numpy(file=json_tempfile)[-1])
-
-# TODO csv write acting weird
+    for a in range(len(temp)):
+        print(str(default_dates[a]), isinstance(default_dates[a], int))
+        for b in temp[str(default_dates[a])]:
+            print('\t', b, ' : ', temp[str(default_dates[a])][b])
