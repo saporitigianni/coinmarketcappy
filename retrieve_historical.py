@@ -2,6 +2,7 @@ import bs4
 import requests
 import time
 import json
+import re
 from string import whitespace
 
 r2013 = [20130428, 20130505, 20130512, 20130519, 20130526, 20130602,
@@ -61,16 +62,19 @@ def retrieve_and_cache(dates=default_dates, out_file=None, cache_file=None, rfor
     Retrieves all the data from the specified file or coinmarketcap.com and caches it to a local file
     for faster subsequent access times
 
-    :param dates: dates to retrieve data for
+    :param dates: dates to retrieve data for. If 'all' is passed in then all dates are fetched from the website first
     :param out_file: file to write the requested data to
     :param cache_file: file to check for some or all of the requested dates
     :param rformat: format of the cache file to check
     :param wformat: format output file to write to
     :return: json format data
     """
+    if dates == 'all':
+        print('Fetching all dates...')
+        dates = available_dates()
     # Retrieves data, caches it to a file and reads from it before returning
     result = retrieve(dates, cache_file, rformat)
-    print('writing to file...')
+    print('Writing to file...')
     write_to_file(result, out_file, wformat)
     result = read_from_file(out_file, wformat)
     return result.copy()
@@ -80,13 +84,17 @@ def retrieve(dates=default_dates, file=None, rformat=None):
     """
     Retrieves data from file if available or coinmarketcap.com
 
-    :param dates: dates to retrieve data for
+    :param dates: dates to retrieve data for. If 'all' is passed in then all dates are fetched from the website first
     :param file: cache file to check for some or all of the requested dates
     :param rformat: format of the cache file to check
     :return: json format data
     """
     missing = list()
     fetched_data = dict()
+
+    if dates == 'all':
+        print('Fetching all dates...')
+        dates = available_dates()
 
     if file is not None:
         fetched_data = read_from_file(file, rformat)
@@ -252,12 +260,43 @@ def csv_to_json(data=None):
     return converted
 
 
+def retrieve_dominance(start=None, end=None):
+    url = 'https://graphs2.coinmarketcap.com/global/dominance/'
+
+
+def epoch_to_date(date=None):
+    pass
+
+
+def available_dates():
+    """
+    Retrieves all dates for which historical data is available
+
+    :return: a list of string dates in ascending order
+    """
+    dates = set()
+    response = requests.get(BASE_URL)
+    soup = bs4.BeautifulSoup(response.content, 'html.parser')
+    ul = soup.find_all('ul')
+    for entry in ul:
+        a = entry.find_all('a')
+        if len(a) == 0:
+            continue
+        for x in a:
+            if 'href' in x.attrs:
+                match = re.match(r'/historical/([0-9]{8,8})/', x['href'])
+                if match is not None:
+                    dates.add(match.group(1))
+    return sorted(list(dates))
+
+
 if __name__ == '__main__':
-    temp = retrieve_and_cache(default_dates, 'historical_20180415.json', 'historical_20180415.json',
+    temp = retrieve_and_cache('all', 'historical_20180415.json', 'historical_20180415.json',
                               rformat='json', wformat='json')
     # temp = read_from_file('csv_historical_20180408.csv', rformat='csv')
     # print(temp)
-
+    # print(available_dates())
+    
     for a in range(len(temp)):
         print(str(default_dates[a]), isinstance(default_dates[a], int))
         for b in temp[str(default_dates[a])]:
