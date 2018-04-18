@@ -52,6 +52,7 @@ r2018 = [20180107, 20180114, 20180121, 20180128, 20180204, 20180211,
          20180401, 20180408, 20180415]
 default_dates = [*r2013, *r2014, *r2015, *r2016, *r2017, *r2018]
 BASE_URL = 'https://coinmarketcap.com/historical/'
+DOMINANCE_URL = 'https://graphs2.coinmarketcap.com/global/dominance/'
 # Coinmarketcap asks that you don't submit more that 10 requests per minute, hence the 6 second sleep.
 # Remove/reduce if you need to download a large number of dates that would take forever otherwise.
 RATE_LIMIT = 6
@@ -260,8 +261,33 @@ def csv_to_json(data=None):
     return converted
 
 
-def retrieve_dominance(start=None, end=None):
-    url = 'https://graphs2.coinmarketcap.com/global/dominance/'
+def retrieve_dominance(start=None, end=None, formatted='alt'):
+    """
+    Retrieves the "Percentage of Market Capitalization (Dominance)" chart data from conmarketcap.com
+
+    :param start: starting date to retrieve for
+    :param end: end date to retrieve for
+    :param formatted: either 'alt' or 'raw'. If 'alt' then all alcoins are summed up. If 'raw' then the
+        coinmarketcap format is kept (e.g. bitcoin, ethereum, ripple, ... Others)
+    :return: the retrieved data either as a dictionary in the format {key: list_of_values}
+        or a dictionary in the format {key: dict_of_values}
+    """
+    response = requests.get(DOMINANCE_URL)
+    json_response = response.json()
+    if formatted == 'raw':
+        return json_response
+    elif formatted == 'alt':
+        result = dict()
+        result['bitcoin'] = dict(json_response['bitcoin'].copy())
+        result['altcoins'] = dict()
+        for entry in json_response:
+            if entry == 'bitcoin':
+                continue
+            for date in json_response[entry]:
+                if date[0] not in result['altcoins']:
+                    result['altcoins'][date[0]] = 0
+                result['altcoins'][date[0]] += date[1]
+    return result
 
 
 def epoch_to_date(date=None):
@@ -291,13 +317,17 @@ def available_dates():
 
 
 if __name__ == '__main__':
-    temp = retrieve_and_cache('all', 'historical_20180415.json', 'historical_20180415.json',
-                              rformat='json', wformat='json')
+    # temp = retrieve_and_cache('all', 'historical_20180415.json', 'historical_20180415.json',
+    #                           rformat='json', wformat='json')
     # temp = read_from_file('csv_historical_20180408.csv', rformat='csv')
     # print(temp)
     # print(available_dates())
-    
-    for a in range(len(temp)):
-        print(str(default_dates[a]), isinstance(default_dates[a], int))
-        for b in temp[str(default_dates[a])]:
-            print('\t', b, ' : ', temp[str(default_dates[a])][b])
+    dominance = retrieve_dominance()
+    for x in dominance:
+        print(x, dominance[x])
+    # print(retrieve_dominance())
+
+    # for a in range(len(temp)):
+    #     print(str(default_dates[a]), isinstance(default_dates[a], int))
+    #     for b in temp[str(default_dates[a])]:
+    #         print('\t', b, ' : ', temp[str(default_dates[a])][b])
