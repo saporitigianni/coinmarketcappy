@@ -297,15 +297,16 @@ def retrieve_dominance(start=None, end=None, formatted='alt'):
         return json_response
     elif formatted == 'alt':
         result = dict()
-        result['bitcoin'] = dict(json_response['bitcoin'].copy())
+        result['bitcoin'] = {epoch_to_date(x[0]): x[1] for x in json_response['bitcoin'].copy()}
         result['altcoins'] = dict()
         for entry in json_response:
             if entry == 'bitcoin':
                 continue
             for date in json_response[entry]:
-                if date[0] not in result['altcoins']:
-                    result['altcoins'][date[0]] = 0
-                result['altcoins'][date[0]] += date[1]
+                date0 = epoch_to_date(date[0])
+                if date0 not in result['altcoins']:
+                    result['altcoins'][date0] = 0
+                result['altcoins'][date0] += date[1]
         for x in result:
             for y in result[x]:
                 result[x][y] = round(result[x][y], 2)
@@ -313,7 +314,9 @@ def retrieve_dominance(start=None, end=None, formatted='alt'):
 
 
 def epoch_to_date(date=None):
-    pass
+    if date is None:
+        ValueError('Please enter an epoch time to convert to date')
+    return time.strftime('%Y-%m-%d', time.localtime(date/1000))
 
 
 def available_dates():
@@ -348,7 +351,8 @@ if __name__ == '__main__':
     for x in dominance:
         print(x, dominance[x])
     # print(retrieve_dominance())
-
+    # for x in dominance['altcoins'].keys():
+    #     print(x)
     # for a in range(len(temp)):
     #     print(str(default_dates[a]), isinstance(default_dates[a], int))
     #     for b in temp[str(default_dates[a])]:
