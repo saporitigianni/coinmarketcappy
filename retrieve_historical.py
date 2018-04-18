@@ -265,15 +265,34 @@ def retrieve_dominance(start=None, end=None, formatted='alt'):
     """
     Retrieves the "Percentage of Market Capitalization (Dominance)" chart data from conmarketcap.com
 
-    :param start: starting date to retrieve for
-    :param end: end date to retrieve for
+    :param start: starting date to retrieve for, in epoch time
+    :param end: end date to retrieve for, in epoch time
     :param formatted: either 'alt' or 'raw'. If 'alt' then all alcoins are summed up. If 'raw' then the
         coinmarketcap format is kept (e.g. bitcoin, ethereum, ripple, ... Others)
     :return: the retrieved data either as a dictionary in the format {key: list_of_values}
         or a dictionary in the format {key: dict_of_values}
     """
-    response = requests.get(DOMINANCE_URL)
+    # Checks to make sure that either start/end are both specified or neither is specified
+    if end is None:
+        if start is not None:
+            raise ValueError('When providing a date range, a start and end must both be provided.')
+        else:
+            dates = None
+    else:
+        if start is None:
+            raise ValueError('When providing a date range, a start and end must both be provided.')
+        else:
+            dates = start + '/' + end + '/'
+    # Concatenates the base dominance url with dates if needed
+    if dates is None:
+        url = DOMINANCE_URL
+    else:
+        url = DOMINANCE_URL + dates
+
+    response = requests.get(url)
     json_response = response.json()
+
+    # If raw, return as is. If alt, sum all the altcoins and round to 2 decimals
     if formatted == 'raw':
         return json_response
     elif formatted == 'alt':
@@ -287,6 +306,9 @@ def retrieve_dominance(start=None, end=None, formatted='alt'):
                 if date[0] not in result['altcoins']:
                     result['altcoins'][date[0]] = 0
                 result['altcoins'][date[0]] += date[1]
+        for x in result:
+            for y in result[x]:
+                result[x][y] = round(result[x][y], 2)
     return result
 
 
