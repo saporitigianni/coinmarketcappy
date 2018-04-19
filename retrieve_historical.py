@@ -348,8 +348,11 @@ if __name__ == '__main__':
     # print(temp)
     # print(available_dates())
     dominance = retrieve_dominance()
-    for x in dominance:
-        print(x, dominance[x])
+    print(list(dominance['bitcoin'].keys()))
+    print(list(dominance['bitcoin'].values()))
+    print(list(dominance['altcoins'].values()))
+    # for x in dominance:
+    #     print(x, dominance[x])
     # print(retrieve_dominance())
     # for x in dominance['altcoins'].keys():
     #     print(x)
