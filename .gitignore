@@ -7,3 +7,5 @@ historical_20180415.csv
 historical_20180415.json
 historical_20180422.json
 dates.py
+coinmarketcappy.egg-info/
+dist/

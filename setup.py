@@ -41,6 +41,7 @@ setup(name='coinmarketcappy',
       packages=['coinmarketcap'],
       install_requires=[
           'requests',
+          'bs4',
       ],
       include_package_data=True,
       zip_safe=False)
