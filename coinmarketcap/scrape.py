@@ -310,6 +310,8 @@ def retrieve_dominance(start=None, end=None, formatted='alt'):
         for x in result:
             for y in result[x]:
                 result[x][y] = round(result[x][y], 2)
+    else:
+        raise ValueError('Please enter a valid return format. Valid options are "raw" or "alt"')
     return result
 
 

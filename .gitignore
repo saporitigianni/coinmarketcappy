@@ -1,0 +1,7 @@
+.DS_Store
+.idea/
+__pycache__/
+virtualenv/
+historical_20180304.json
+historical_20180415.csv
+historical_20180415.json
