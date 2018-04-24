@@ -39,6 +39,14 @@ def historical_snapshots(dates=default_dates, out_file=None, cache_file=None, rf
     if dates == 'all':
         print('Fetching all dates...')
         dates = available_dates()
+    elif type(dates) == list:
+        pass
+    elif type(dates) == int:
+        dates = [dates]
+    elif (type(dates) == str) and dates.isdigit():
+        dates = [dates]
+    else:
+        raise ValueError('Please use a valid format for the "dates" attribute')
     # Retrieves data, caches it to a file and reads from it before returning
     result = _retrieve_snaps(dates, cache_file, rformat, rate_limit)
     if cache:

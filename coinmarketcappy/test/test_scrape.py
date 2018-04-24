@@ -1,4 +1,4 @@
-from coinmarketcap import scrape
+from coinmarketcappy import scrape
 
 
 temp = scrape.historical_snapshots('all',
