@@ -1,5 +1,9 @@
+.. -*-restructuredtext-*-
 coinmarketcappy: Python wrapper and scraper for coinmarketcap data
 =========================
+
+.. image:: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
+    :target: https://www.python.org/
 
 .. image:: https://img.shields.io/pypi/v/coinmarketcappy.svg
     :target: https://pypi.org/project/coinmarketcappy/

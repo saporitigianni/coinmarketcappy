@@ -1,9 +1,8 @@
 import bs4
 import requests
-import time
-import json
 import re
 from string import whitespace
+from .utils import *
 
 
 default_dates = 'all'
@@ -17,29 +16,29 @@ RATE_LIMIT = 6
 
 
 def historical_snapshots(dates=default_dates, out_file=None, cache_file=None, rformat='json', wformat='json',
-                         cache=True, rate_limit=RATE_LIMIT):
+                         rate_limit=RATE_LIMIT):
     """
     Retrieves all the data from the specified file or coinmarketcap.com and caches it to a local file
     for faster subsequent access times
     For a list of all available dates refer to https://coinmarketcap.com/historical/
 
-    NOTE: A separate request submitted for each date provided so it might take a while if retrieveing mak=ny dates
+    NOTE: A separate request submitted for each date provided so it might take a while if retrieving many dates
         at once
 
     :param rate_limit:
     :param dates: dates to retrieve data for. If 'all' is passed in then all dates are fetched from the website first
-    :param out_file: file to write the requested data to (local file or absolute path to file)
-    :param cache_file: file to check for some or all of the requested dates (local file or absolute path to file)
+        must be in the format 'yyyymmdd' (e.g. 20180423)
+    :param out_file: if provided info will be saved to this file (local file name or absolute path)
+    :param cache_file: file to check for some or all of the requested dates (local file name or absolute path)
     :param rformat: format of the cache file to check
     :param wformat: format output file to write to
-    :param cache: If False, the results won't be cached (very slow subsequent access times)
     :param rate_limit: time to wait between requests to coinmarketcap
     :return: json format data
     """
     if dates == 'all':
         print('Fetching all dates...')
-        dates = available_dates()
-    elif type(dates) == list:
+        dates = available_snaps()
+    elif (type(dates) == list) or (type(dates) == tuple):
         pass
     elif type(dates) == int:
         dates = [dates]
@@ -49,7 +48,7 @@ def historical_snapshots(dates=default_dates, out_file=None, cache_file=None, rf
         raise ValueError('Please use a valid format for the "dates" attribute')
     # Retrieves data, caches it to a file and reads from it before returning
     result = _retrieve_snaps(dates, cache_file, rformat, rate_limit)
-    if cache:
+    if out_file:
         print('Writing to file...')
         write_to_file(result, out_file, wformat)
         result = read_from_file(out_file, wformat)
@@ -64,7 +63,7 @@ def _retrieve_snaps(dates=default_dates, file=None, rformat=None, rate_limit=RAT
     NOTE: There's a separate request submitted
 
     :param dates: dates to retrieve data for. If 'all' then all dates are fetched from the website first
-    :param file: cache file to check for some or all of the requested dates (local file or absolute path to file)
+    :param file: cache file to check for some or all of the requested dates (local file name or absolute path)
     :param rformat: format of the cache file to check
     :param rate_limit: time to wait between requests to coinmarketcap
     :return: json format data
@@ -74,7 +73,7 @@ def _retrieve_snaps(dates=default_dates, file=None, rformat=None, rate_limit=RAT
 
     if dates == 'all':
         print('Fetching all dates...')
-        dates = available_dates()
+        dates = available_snaps()
 
     if file is not None:
         fetched_data = read_from_file(file, rformat)
@@ -138,141 +137,7 @@ def _retrieve_snaps(dates=default_dates, file=None, rformat=None, rate_limit=RAT
     return fetched_data.copy()
 
 
-def write_to_file(data=None, file=None, wformat='json'):
-    """
-    Writes json or csv data to file
-
-    :param data: json format data to write to file
-    :param file: file to write to (local file or absolute path to file)
-    :param wformat: format to write to file on
-    :return: None
-    """
-    if data is None:
-        raise Exception('Data missing. Please specify the data to write to file.')
-    if file is None:
-        raise Exception('File name missing. Please specify the name of a file to write to.')
-
-    if wformat == 'json':
-        with open(file, 'w') as f:
-            json.dump(data, f, ensure_ascii=False)
-    elif wformat == 'csv':
-        with open(file, 'w') as f:
-            f.write(json_to_csv(data))
-    else:
-        raise ValueError("Please enter a valid wformat. Valid values are 'json' and 'csv'.")
-
-
-def read_from_file(file=None, rformat='json'):
-    """
-    Reads from file and converts to json format if it isn't already
-
-    :param file: file to read from (local file or absolute path to file)
-    :param rformat: format of the file
-    :return: the data retrieved from file
-    """
-    if file is None:
-        raise Exception('File name missing. Please specify the name of a file to read from.')
-
-    if rformat == 'json':
-        with open(file, 'r') as f:
-            contents = f.read()
-            return json.loads(contents)
-    elif rformat == 'csv':
-        with open(file, 'r') as f:
-            contents = f.read()
-            contents = csv_to_json(contents)
-            return contents
-    else:
-        raise ValueError("Please enter a valid rformat. Valid values are 'json' and 'csv'.")
-
-
-def json_to_csv(data=None):
-    """
-    Specify data to convert to csv format (not both)
-
-    :param data: json formatted data to convert to csv format
-    :return: csv format data
-    """
-    # Verifies that one and only one of the input types is specified
-    if data is None:
-        raise ValueError('Data missing. Please specify the data to convert.')
-
-    output = ''
-    # Organizes the dates so that the output csv file is properly organized as well
-    dates = list(data.keys())
-    dates.sort()
-
-    # Goes through each date (outer loop) and each rank (inner) to convert to csv format
-    for x in data:
-        output += x + '\n'
-        for y in data[x]:
-            output += str(y) + ', '
-            output += data[x][y]['symbol'] + ', '
-            output += data[x][y]['name'] + ', '
-            output += str(data[x][y]['market_cap']) + ', '
-            output += str(data[x][y]['price']) + ', '
-            output += str(data[x][y]['circulating_supply']) + ', '
-            output += str(data[x][y]['24hr_vol']) + '\n'
-    return output
-
-
-def csv_to_json(data=None):
-    """
-    Takes properly formatted csv data and returns it in json format
-
-    :param data: csv formatted data to convert to json format
-    :return: json format data
-    """
-    if data is None:
-        raise ValueError('Data missing. Please specify the data to convert.')
-
-    converted = dict()
-    base = None
-    for line in data.splitlines():
-        split = [x.strip() for x in line.split(',')]
-        if len(split) == 1:
-            base = split[0]
-            converted[base] = dict()
-            continue
-        else:
-            converted[base][split[0]] = dict()
-            converted[base][split[0]]['symbol'] = split[1]
-            converted[base][split[0]]['name'] = split[2]
-            converted[base][split[0]]['market_cap'] = split[3]
-            converted[base][split[0]]['price'] = split[4]
-            converted[base][split[0]]['circulating_supply'] = split[5]
-            converted[base][split[0]]['24hr_vol'] = split[6]
-    return converted
-
-
-def start_end(start=None, end=None, url=None):
-    """
-    Checks to make sure that either start/end are both specified or neither is specified and concatenates
-    them with the provided url
-
-    :return: url/start/end/
-    """
-    # Checks to make sure that either start/end are both specified or neither is specified
-    if end is None:
-        if start is not None:
-            raise ValueError('When providing a date range, a start and end must both be provided.')
-        else:
-            dates = None
-    else:
-        if start is None:
-            raise ValueError('When providing a date range, a start and end must both be provided.')
-        else:
-            dates = start + '/' + end + '/'
-    # Concatenates the base dominance url with dates if needed
-    if dates is None:
-        final_url = url
-    else:
-        final_url = url + dates
-
-    return final_url
-
-
-def dominance(start=None, end=None, formatted='raw', epoch=False):
+def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None, wformat='json'):
     """
     Retrieves the "Percentage of Market Capitalization (Dominance)" chart data from conmarketcap.com
 
@@ -281,6 +146,8 @@ def dominance(start=None, end=None, formatted='raw', epoch=False):
     :param formatted: either 'alt' or 'raw'. If 'alt' then all alcoins are summed up. If 'raw' then the
         coinmarketcap format is kept (e.g. top 10 + others)
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
+    :param out_file: if provided info will be saved to this file
+    :param wformat: format to write to cache ('json' by default)
     :return: the retrieved data as a dictionary in the format {key: list_of_values} where key is
         bitcoin or altcoins or ethereum, etc and list_of_values is a list of pairs [[date, percent], [date, percent]...]
     """
@@ -289,6 +156,8 @@ def dominance(start=None, end=None, formatted='raw', epoch=False):
 
     url = start_end(start, end, DOMINANCE_URL)
     response = requests.get(url)
+    # TODO if response code not 200 then handle
+    # TODO make this into a function
     json_response = response.json()
 
     # If raw, return as is rounded to 2 decimals
@@ -299,7 +168,9 @@ def dominance(start=None, end=None, formatted='raw', epoch=False):
         else:  # If epoch is False then convert epochs and round
             for x in json_response:
                 json_response[x] = [[epoch_to_date(x[0]), round(x[1], 2)] for x in json_response[x]]
-        return json_response
+        if out_file:
+            write_to_file(json_response, out_file, wformat)
+        return json_response.copy()
 
     # If alt, sum all the altcoins and round to 2 decimals
     elif formatted == 'alt':
@@ -322,12 +193,14 @@ def dominance(start=None, end=None, formatted='raw', epoch=False):
             for x in result:
                 result[x] = [[epoch_to_date(y), round(result[x][y], 2)] for y in sorted(result[x].keys())]
             result['bitcoin'] = [[epoch_to_date(x[0]), round(x[1], 2)] for x in btc_temp]
-        return result
+        if out_file and wformat:
+            write_to_file(json_response, out_file, wformat)
+        return result.copy()
     else:
         raise ValueError('Please enter a valid return format. Valid options are "raw" or "alt"')
 
 
-def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False):
+def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False, out_file=None, wformat='json'):
     """
     Retrieves the "Total Market Capitalization" chart data from conmarketcap.com (option to exclude bitcoin)
 
@@ -335,6 +208,8 @@ def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False):
     :param end: end date to retrieve for, in epoch time
     :param exclude_btc: if True, the "Total Market Capitalization (Excluding Bitcoin)" is scraped instead
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
+    :param out_file: if provided info will be saved to this file
+    :param wformat: format to write to cache ('json' by default)
     :return: the retrieved data either as a dictionary in the format {key: list_of_values}
         or a dictionary in the format {key: dict_of_values}
     """
@@ -346,21 +221,22 @@ def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False):
     json_response = response.json()
 
     if epoch:
-        return json_response['market_cap_by_available_supply']
+        if out_file:
+            write_to_file(json_response['market_cap_by_available_supply'], out_file, wformat)
+        return json_response['market_cap_by_available_supply'].copy()
     else:
-        return [[epoch_to_date(x[0]), x[1]] for x in json_response['market_cap_by_available_supply']]
+        temp = [[epoch_to_date(x[0]), x[1]] for x in json_response['market_cap_by_available_supply']]
+        if out_file:
+            write_to_file(temp, out_file, wformat)
+        return temp.copy()
 
 
-def epoch_to_date(date=None):
-    if date is None:
-        ValueError('Please enter an epoch time to convert to date')
-    return time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(date/1000))
-
-
-def available_dates():
+def available_snaps(out_file=None, wformat=None):
     """
     Retrieves all dates for which historical data is available
 
+    :param out_file: file to write info to
+    :param wformat: format to write the info
     :return: a list of string dates in ascending order
     """
     dates = set()
@@ -376,6 +252,9 @@ def available_dates():
                 match = re.match(r'/historical/([0-9]{8,8})/', x['href'])
                 if match is not None:
                     dates.add(match.group(1))
-    return sorted(list(dates))
-
-# TODO add saving ability for dominance and total_market_cap
+    ret = sorted(list(dates))
+    if out_file and wformat:
+        write_to_file(ret, out_file, wformat)
+    elif out_file or wformat:
+        raise ValueError('When saving available_snaps both out_file and wformat must be present')
+    return ret.copy()
