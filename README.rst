@@ -94,5 +94,7 @@ Buy me a coffee?
 ----------------
 
 ETH 0xaD1F09626b9B8e701D5f0F4a237193Df73d3C445
+
 BTC 199zsVqCusefv8yjdYQhUQZmLCyh75dqNV
+
 LTC LUBqs7VxC43ttPsQuM1jaZFmshKTAU1Rs9
