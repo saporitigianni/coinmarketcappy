@@ -26,22 +26,12 @@ def start_end(start=None, end=None, url=None):
     """
     # Checks to make sure that either start/end are both specified or neither is specified
     if start and end:
-        dates = start + '/' + end + '/'
+        dates = '{}/{}/'.format(start, end)
     elif not (start and end):
         dates = None
     else:
         raise ValueError('When providing a date range, a start and end must both be provided.')
-    # if end is None:
-    #     if start is not None:
-    #         raise ValueError('When providing a date range, a start and end must both be provided.')
-    #     else:
-    #         dates = None
-    # else:
-    #     if start is None:
-    #         raise ValueError('When providing a date range, a start and end must both be provided.')
-    #     else:
-    #         dates = start + '/' + end + '/'
-    # Concatenates the base dominance url with dates if needed
+
     if dates is None:
         final_url = url
     else:

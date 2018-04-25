@@ -1,8 +1,12 @@
 import bs4
 import requests
 import re
+import time
 from string import whitespace
-from .utils import *
+from .utils import write_to_file
+from .utils import read_from_file
+from .utils import start_end
+from .utils import epoch_to_date
 
 
 default_dates = 'all'
@@ -10,8 +14,8 @@ SNAPS_URL = 'https://coinmarketcap.com/historical/'
 DOMINANCE_URL = 'https://graphs2.coinmarketcap.com/global/dominance/'
 MARKETCAP_URL = 'https://graphs2.coinmarketcap.com/global/marketcap-total/'
 MARKETCAP_ALTCOIN_URL = 'https://graphs2.coinmarketcap.com/global/marketcap-altcoin/'
+TICKER_URL = 'https://graphs2.coinmarketcap.com/currencies/'
 # Coinmarketcap asks that you don't submit more that 10 requests per minute, hence the 6 second wait.
-# Remove/reduce if you need to download a large number of dates that would take forever otherwise.
 RATE_LIMIT = 6
 
 
@@ -25,16 +29,17 @@ def historical_snapshots(dates=default_dates, out_file=None, cache_file=None, rf
     NOTE: A separate request submitted for each date provided so it might take a while if retrieving many dates
         at once
 
-    :param rate_limit:
-    :param dates: dates to retrieve data for. If 'all' is passed in then all dates are fetched from the website first
-        must be in the format 'yyyymmdd' (e.g. 20180423)
-    :param out_file: if provided info will be saved to this file (local file name or absolute path)
+    :param dates: dates to retrieve data for. If 'all' is passed in then all dates are fetched from the website first.
+        Must be in the format 'yyyymmdd' (e.g. 20180423)
+    :param out_file: if provided, info will be saved to this file (local file name or absolute path)
     :param cache_file: file to check for some or all of the requested dates (local file name or absolute path)
     :param rformat: format of the cache file to check
-    :param wformat: format output file to write to
+    :param wformat: format to use when writing to output file ('json' by default)
     :param rate_limit: time to wait between requests to coinmarketcap
-    :return: json format data
+    :return: a nested dictionary in the format {date: {rank: {info_about_coin}}} where there can be many dates
+        each with many ranks and each rank with the info about that particular coin
     """
+    # TODO option to return this as a dict of sorted lists
     if dates == 'all':
         print('Fetching all dates...')
         dates = available_snaps()
@@ -146,10 +151,10 @@ def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None,
     :param formatted: either 'alt' or 'raw'. If 'alt' then all alcoins are summed up. If 'raw' then the
         coinmarketcap format is kept (e.g. top 10 + others)
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
-    :param out_file: if provided info will be saved to this file
-    :param wformat: format to write to cache ('json' by default)
-    :return: the retrieved data as a dictionary in the format {key: list_of_values} where key is
-        bitcoin or altcoins or ethereum, etc and list_of_values is a list of pairs [[date, percent], [date, percent]...]
+    :param out_file: if provided, info will be saved to this file (local file name or absolute path)
+    :param wformat: format to use when writing to output file ('json' by default)
+    :return: the retrieved data as a dictionary in the format {key: list_of_values} where key is bitcoin or
+        altcoins or ethereum, etc and list_of_values is a list of pairs [[date, percent], [date, percent]...]
     """
     if type(epoch) != bool:
         raise ValueError('Please make sure you are using a boolean for the epoch parameter')
@@ -208,10 +213,9 @@ def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False, out_f
     :param end: end date to retrieve for, in epoch time
     :param exclude_btc: if True, the "Total Market Capitalization (Excluding Bitcoin)" is scraped instead
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
-    :param out_file: if provided info will be saved to this file
-    :param wformat: format to write to cache ('json' by default)
-    :return: the retrieved data either as a dictionary in the format {key: list_of_values}
-        or a dictionary in the format {key: dict_of_values}
+    :param out_file: if provided, info will be saved to this file (local file name or absolute path)
+    :param wformat: format to use when writing to output file ('json' by default)
+    :return: the retrieved data as a list of pairs [[date, market_cap], [date, market_cap]...]
     """
     if (type(epoch) != bool) or (type(exclude_btc) != bool):
         raise ValueError('Please make sure you are using a boolean for the epoch and exclude_btc parameters')
@@ -235,9 +239,9 @@ def available_snaps(out_file=None, wformat=None):
     """
     Retrieves all dates for which historical data is available
 
-    :param out_file: file to write info to
-    :param wformat: format to write the info
-    :return: a list of string dates in ascending order
+    :param out_file: if provided, info will be saved to this file (local file name or absolute path)
+    :param wformat: format to use when writing to output file ('json' by default)
+    :return: a list of string dates in ascending order in the format 'yyyymmdd' (e.g. 20180423)
     """
     dates = set()
     response = requests.get(SNAPS_URL)
@@ -256,3 +260,23 @@ def available_snaps(out_file=None, wformat=None):
     if out_file:
         write_to_file(ret, out_file, wformat)
     return ret.copy()
+
+
+def get_ticker_historical(name=None, start=None, end=None, epoch=False, out_file=None, wformat='json'):
+    if not name:
+        raise ValueError('Please provide the name of a coin/token to retrieve data for')
+
+    temp_url = TICKER_URL + name.lower() + '/'
+    url = start_end(start, end, temp_url)
+    response = requests.get(url)
+    json_response = response.json()
+
+    if epoch:
+        if out_file:
+            write_to_file(json_response['market_cap_by_available_supply'], out_file, wformat)
+        return json_response['market_cap_by_available_supply'].copy()
+    else:
+        temp = [[epoch_to_date(x[0]), x[1]] for x in json_response['market_cap_by_available_supply']]
+        if out_file:
+            write_to_file(temp, out_file, wformat)
+        return temp.copy()

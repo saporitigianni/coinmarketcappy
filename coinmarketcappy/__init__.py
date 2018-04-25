@@ -5,6 +5,7 @@ from .scrape import available_snaps
 from .scrape import historical_snapshots
 from .scrape import dominance
 from .scrape import total_market_cap
+from .scrape import get_ticker_historical
 from .utils import epoch_to_date
 from .utils import export_csv
 from .utils import export_json
@@ -17,6 +18,7 @@ scrape = [
     'historical_snapshots',
     'dominance',
     'total_market_cap',
+    'get_ticker_historical',
 ]
 
 retrieve = [

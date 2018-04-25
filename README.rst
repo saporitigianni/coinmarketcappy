@@ -38,7 +38,7 @@ To get Historical Snapshots (taken every Sunday since 20130428) or Global Charts
     import coinmarketcappy as cmc
 
     # Get all available historical snapshots to choose from
-    # or visit `coinmarketcap.com <https://coinmarketcap.com/historical/>`_
+    # or visit https://coinmarketcap.com/historical/
     dates = cmc.available_snaps()
 
     # Retrieve info for the last 10 snapshots
@@ -53,6 +53,28 @@ To get Historical Snapshots (taken every Sunday since 20130428) or Global Charts
     # Total Market Capitalization (Excluding Bitcoin)
     cap = cmc.total_market_cap(exclude_btc=True)
 
+To get tickers and simple global data:
+""""""""""""""""""""""""""""""""""""""
+
+.. code:: python
+
+    import coinmarketcappy as cmc
+
+    # Get a list of all tickers organized by rank
+    tickers = get_tickers()
+
+    # Get a specific ticker (by its name not symbol. e.g. bitcoin, ethereum,... not btc, eth)
+    ticker = get_ticker(name='bitcoin')
+
+    # Get global data in ERU
+    global = get_global_data(convert='eur')
+
+Acknowledgements
+----------------
+
+This data is being sourced either from the `API <https://coinmarketcap.com/api/>`_ or is being scraped from `coinmarketcap.com <https://coinmarketcap.com/>`_
+Its `free to use <https://coinmarketcap.com/faq/>`_ so please respect their rate limit. :octocat:
+
 Contributing
 ------------
 
@@ -61,6 +83,10 @@ Please read the `CONTRIBUTING <https://github.com/saporitigianni/coinmarketcappy
 Code of Conduct
 ---------------
 
-Everyone interacting in the ``coinmarketcappy`` project's codebases, issue
+Everyone interacting in the ``coinmarketcappy`` project's codebase, issue
 trackers, chat rooms, and mailing lists is expected to follow the
 `PyPA Code of Conduct <https://www.pypa.io/en/latest/code-of-conduct/>`_.
+
+Buy me a coffee?
+
+ETH 0xaD1F09626b9B8e701D5f0F4a237193Df73d3C445

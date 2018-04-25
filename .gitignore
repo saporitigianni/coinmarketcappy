@@ -9,3 +9,4 @@ historical_20180422.json
 dates.py
 coinmarketcappy.egg-info/
 dist/
+coinmarketcappy/test/historical_snaps.json
