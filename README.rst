@@ -61,13 +61,16 @@ To get tickers and simple global data:
     import coinmarketcappy as cmc
 
     # Get a list of all tickers organized by rank
-    tickers = get_tickers()
+    tickers = cmc.get_tickers()
 
     # Get a specific ticker (by its name not symbol. e.g. bitcoin, ethereum,... not btc, eth)
-    ticker = get_ticker(name='bitcoin')
+    ticker = cmc.get_ticker(name='bitcoin')
+
+    # Get ticker's historical data (also by its name)
+    temp = cmc.get_ticker_historical(name='bitcoin')
 
     # Get global data in ERU
-    global = get_global_data(convert='eur')
+    global = cmc.get_global_data(convert='eur')
 
 Acknowledgements
 ----------------
@@ -88,5 +91,8 @@ trackers, chat rooms, and mailing lists is expected to follow the
 `PyPA Code of Conduct <https://www.pypa.io/en/latest/code-of-conduct/>`_.
 
 Buy me a coffee?
+----------------
 
 ETH 0xaD1F09626b9B8e701D5f0F4a237193Df73d3C445
+BTC 199zsVqCusefv8yjdYQhUQZmLCyh75dqNV
+LTC LUBqs7VxC43ttPsQuM1jaZFmshKTAU1Rs9
