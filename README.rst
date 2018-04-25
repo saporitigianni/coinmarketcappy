@@ -1,4 +1,5 @@
 .. -*-restructuredtext-*-
+
 coinmarketcappy: Python wrapper and scraper for coinmarketcap data
 =========================
 
@@ -22,6 +23,34 @@ To install coinmarketcappy, simply use pip:
 .. code-block:: bash
 
     $ pip install coinmarketcappy
+
+Usage
+-----
+Every method supports the arguments 'out_file' and 'wformat' to save the information to a file.
+If 'outfile' is present then the info will be saved to that file. Use absolute path unless you want to save locally.
+If 'wformat' is not specified, it will default to 'json' ('csv' also supported for historical_snapshots)
+
+To get historical snapshots (Taken every Sunday since 20130428)
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. code:: python
+
+    import coinmarketcappy as cmc
+
+    # Get all available historical snapshots to choose from
+    dates = cmc.available_snaps()
+
+    # Retrieve info for the last 10 snapshots
+    snaps = cmc.historical_snapshots(dates[-10:])
+
+    # Percentage of Market Capitalization (Dominance)
+    dom = cmc.dominance()
+
+    # Total Market Capitalization
+    cap = cmc.total_market_cap()
+
+    # Total Market Capitalization (Excluding Bitcoin)
+    cap = cmc.total_market_cap(exclude_btc=True)
 
 Contributing
 ------------

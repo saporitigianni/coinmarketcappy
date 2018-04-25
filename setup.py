@@ -2,12 +2,12 @@ from setuptools import setup
 
 
 def readme():
-    with open('README.rst') as f:
+    with open('README.rst', encoding='utf-8') as f:
         return f.read()
 
 
 MAJOR               = 0
-MINOR               = 1
+MINOR               = 3
 MICRO               = 0
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 

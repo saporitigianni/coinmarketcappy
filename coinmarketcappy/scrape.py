@@ -253,8 +253,6 @@ def available_snaps(out_file=None, wformat=None):
                 if match is not None:
                     dates.add(match.group(1))
     ret = sorted(list(dates))
-    if out_file and wformat:
+    if out_file:
         write_to_file(ret, out_file, wformat)
-    elif out_file or wformat:
-        raise ValueError('When saving available_snaps both out_file and wformat must be present')
     return ret.copy()
