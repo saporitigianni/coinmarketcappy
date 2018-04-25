@@ -193,7 +193,7 @@ def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None,
             for x in result:
                 result[x] = [[epoch_to_date(y), round(result[x][y], 2)] for y in sorted(result[x].keys())]
             result['bitcoin'] = [[epoch_to_date(x[0]), round(x[1], 2)] for x in btc_temp]
-        if out_file and wformat:
+        if out_file:
             write_to_file(json_response, out_file, wformat)
         return result.copy()
     else:

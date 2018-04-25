@@ -38,6 +38,7 @@ To get Historical Snapshots (taken every Sunday since 20130428) or Global Charts
     import coinmarketcappy as cmc
 
     # Get all available historical snapshots to choose from
+    # or visit `coinmarketcap.com <https://coinmarketcap.com/historical/>`_
     dates = cmc.available_snaps()
 
     # Retrieve info for the last 10 snapshots
