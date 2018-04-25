@@ -4,7 +4,7 @@ from io import open
 
 def readme():
     with open('README.rst', encoding='utf-8') as f:
-        return f.read()
+        return '\n' + f.read()
 
 
 MAJOR               = 0

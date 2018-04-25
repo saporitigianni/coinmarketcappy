@@ -1,7 +1,7 @@
 .. -*-restructuredtext-*-
 
 coinmarketcappy: Python wrapper and scraper for coinmarketcap data
-=========================
+==================================================================
 
 .. image:: https://img.shields.io/badge/Made%20with-Python-1f425f.svg
     :target: https://www.python.org/
@@ -10,7 +10,7 @@ coinmarketcappy: Python wrapper and scraper for coinmarketcap data
     :target: https://pypi.org/project/coinmarketcappy/
 
 .. image:: https://img.shields.io/pypi/l/coinmarketcappy.svg
-    :target: https://pypi.org/project/requcoinmarketcappyests/
+    :target: https://pypi.org/project/coinmarketcappy/
 
 .. image:: https://img.shields.io/pypi/pyversions/coinmarketcappy.svg
     :target: https://pypi.org/project/coinmarketcappy/
@@ -30,8 +30,8 @@ Every method supports the arguments 'out_file' and 'wformat' to save the informa
 If 'outfile' is present then the info will be saved to that file. Use absolute path unless you want to save locally.
 If 'wformat' is not specified, it will default to 'json' ('csv' also supported for historical_snapshots)
 
-To get historical snapshots (Taken every Sunday since 20130428)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+To get Historical Snapshots (taken every Sunday since 20130428) or Global Charts data:
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: python
 
