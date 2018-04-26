@@ -8,7 +8,7 @@ def readme():
 
 
 MAJOR               = 0
-MINOR               = 5
+MINOR               = 6
 MICRO               = 0
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
