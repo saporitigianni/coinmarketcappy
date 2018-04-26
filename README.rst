@@ -20,9 +20,15 @@ Installation
 
 To install coinmarketcappy, simply use pip:
 
-.. code-block:: bash
+.. code:: bash
 
     $ pip install coinmarketcappy
+
+or install from source:
+
+.. code:: bash
+
+    $ pip install git+https://github.com/saporitigianni/coinmarketcappy.git
 
 Usage
 -----
@@ -70,12 +76,12 @@ To get tickers and simple global data:
     temp = cmc.get_ticker_historical(name='bitcoin')
 
     # Get global data in ERU
-    global = cmc.get_global_data(convert='eur')
+    glob = cmc.get_global_data(convert='eur')
 
 Acknowledgements
 ----------------
 
-This data is being sourced either from the `API <https://coinmarketcap.com/api/>`_ or is being scraped from `coinmarketcap.com <https://coinmarketcap.com/>`_
+This data is being sourced either from the `coinmarketcap API <https://coinmarketcap.com/api/>`_ or is being scraped from `coinmarketcap.com <https://coinmarketcap.com/>`_.
 Its `free to use <https://coinmarketcap.com/faq/>`_ so please respect their rate limit. :octocat:
 
 Contributing
@@ -93,8 +99,6 @@ trackers, chat rooms, and mailing lists is expected to follow the
 Buy me a coffee?
 ----------------
 
-ETH 0xaD1F09626b9B8e701D5f0F4a237193Df73d3C445
-
-BTC 199zsVqCusefv8yjdYQhUQZmLCyh75dqNV
-
-LTC LUBqs7VxC43ttPsQuM1jaZFmshKTAU1Rs9
+|ETH 0xaD1F09626b9B8e701D5f0F4a237193Df73d3C445
+|BTC 199zsVqCusefv8yjdYQhUQZmLCyh75dqNV
+|LTC LUBqs7VxC43ttPsQuM1jaZFmshKTAU1Rs9
