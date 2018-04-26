@@ -1,10 +1,11 @@
 import requests
 from .utils import write_to_file
+from .utils import epoch_to_date
 
 BASE_URL = 'https://api.coinmarketcap.com/v1/'
 
 
-def get_tickers(start=None, limit=None, convert=None, out_file=None, wformat='json'):
+def get_tickers(start=None, limit=None, convert=None, epoch=False, out_file=None, wformat='json'):
     """
     Retrieves all specified tickers
 
@@ -13,6 +14,7 @@ def get_tickers(start=None, limit=None, convert=None, out_file=None, wformat='js
     :param convert: if omitted only USD prices are returned. Supported currencies are: "AUD", "BRL", "CAD", "CHF",
         "CLP", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR",
         "NOK", "NZD", "PHP", "PKR", "PLN", "RUB", "SEK", "SGD", "THB", "TRY", "TWD", "ZAR"
+    :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
     :param out_file: if provided, info will be saved to this file (local file name or absolute path)
     :param wformat: format to use when writing to output file ('json' by default)
     :return: a list of dictionaries organized by rank. All dictionaries have the following keys:
@@ -34,12 +36,18 @@ def get_tickers(start=None, limit=None, convert=None, out_file=None, wformat='js
 
     response = requests.get(url)
     json_response = response.json()
+
+    if not epoch:
+        for entry in json_response:
+            # * 1000 since method takes in milliseconds
+            entry['last_updated'] = epoch_to_date(int(entry['last_updated']) * 1000)
+
     if out_file:
-        write_to_file(json_response, out_file, 'json')
+        write_to_file(json_response, out_file, wformat, tickers=True)
     return json_response
 
 
-def get_ticker(name=None, convert=None, out_file=None, wformat='json'):
+def get_ticker(name=None, convert=None, epoch=False, out_file=None, wformat='json'):
     """
     Retrieves one specific ticker
 
@@ -47,6 +55,7 @@ def get_ticker(name=None, convert=None, out_file=None, wformat='json'):
     :param convert: if omitted only USD prices are returned. Supported currencies are: "AUD", "BRL", "CAD", "CHF",
         "CLP", "CNY", "CZK", "DKK", "EUR", "GBP", "HKD", "HUF", "IDR", "ILS", "INR", "JPY", "KRW", "MXN", "MYR",
         "NOK", "NZD", "PHP", "PKR", "PLN", "RUB", "SEK", "SGD", "THB", "TRY", "TWD", "ZAR"
+    :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
     :param out_file: if provided, info will be saved to this file (local file name or absolute path)
     :param wformat: format to use when writing to output file ('json' by default)
     :return: a dictionary with the following keys:
@@ -62,6 +71,11 @@ def get_ticker(name=None, convert=None, out_file=None, wformat='json'):
 
     response = requests.get(url)
     json_response = response.json()[0]
+
+    if not epoch:
+        # * 1000 since method takes in milliseconds
+        json_response['last_updated'] = epoch_to_date(int(json_response['last_updated']) * 1000)
+
     if out_file:
         write_to_file(json_response, out_file, wformat, simple=True)
     return json_response

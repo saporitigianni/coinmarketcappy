@@ -18,7 +18,7 @@ setup(name='coinmarketcappy',
       description='Python API wrapper and scraper for coinmarketcappy data',
       long_description=readme(),
       classifiers=[
-          'Development Status :: 3 - Alpha',
+          'Development Status :: 5 - Alpha',
           'Intended Audience :: Developers',
           'Intended Audience :: Financial and Insurance Industry',
           'License :: OSI Approved :: MIT License',

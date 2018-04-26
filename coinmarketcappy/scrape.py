@@ -4,7 +4,7 @@ import re
 import time
 from string import whitespace
 from .utils import write_to_file
-from .utils import read_from_file
+from .utils import read_historical_snaps
 from .utils import start_end
 from .utils import epoch_to_date
 
@@ -58,7 +58,7 @@ def historical_snapshots(dates=default_dates, out_file=None, cache_file=None, rf
     if out_file:
         print('Writing to file...')
         write_to_file(result, out_file, wformat)
-        result = read_from_file(out_file, wformat)
+        result = read_historical_snaps(out_file, wformat)
     return result.copy()
 
 
@@ -83,7 +83,7 @@ def _retrieve_snaps(dates=default_dates, file=None, rformat=None, rate_limit=RAT
         dates = available_snaps()
 
     if file is not None:
-        fetched_data = read_from_file(file, rformat)
+        fetched_data = read_historical_snaps(file, rformat)
         # Figure out what dates are missing
         for x in dates:
             if str(x) not in fetched_data:
@@ -196,7 +196,7 @@ def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None,
             for x in json_response:
                 json_response[x] = [[epoch_to_date(x[0]), round(x[1], 2)] for x in json_response[x]]
         if out_file:
-            write_to_file(json_response, out_file, wformat, dominance=True)
+            write_to_file(json_response, out_file, wformat, cmplex=True)
         return json_response.copy()
 
     # If alt, sum all the altcoins and round to 2 decimals
@@ -221,7 +221,7 @@ def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None,
                 result[x] = [[epoch_to_date(y), round(result[x][y], 2)] for y in sorted(result[x].keys())]
             result['bitcoin'] = [[epoch_to_date(x[0]), round(x[1], 2)] for x in btc_temp]
         if out_file:
-            write_to_file(result, out_file, wformat, dominance=True)
+            write_to_file(result, out_file, wformat, cmplex=True)
         return result.copy()
     else:
         raise ValueError('Please enter a valid return format. Valid options are "raw" or "alt"')
@@ -249,14 +249,14 @@ def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False, out_f
 
     if epoch:
         if out_file:
-            write_to_file(json_response, out_file, wformat, dominance=True)
+            write_to_file(json_response, out_file, wformat, cmplex=True)
         return json_response.copy()
     else:
         for y in json_response:
             temp = [[epoch_to_date(x[0]), x[1]] for x in json_response[y]]
             json_response[y] = temp.copy()
         if out_file:
-            write_to_file(json_response, out_file, wformat, dominance=True)
+            write_to_file(json_response, out_file, wformat, cmplex=True)
         return json_response.copy()
 
 
@@ -310,12 +310,12 @@ def get_ticker_historical(name=None, start=None, end=None, epoch=False, out_file
 
     if epoch:
         if out_file:
-            write_to_file(json_response, out_file, wformat, dominance=True)
+            write_to_file(json_response, out_file, wformat, cmplex=True)
         return json_response.copy()
     else:
         for y in json_response:
             temp = [[epoch_to_date(x[0]), x[1]] for x in json_response[y]]
             json_response[y] = temp.copy()
         if out_file:
-            write_to_file(json_response, out_file, wformat, dominance=True)
+            write_to_file(json_response, out_file, wformat, cmplex=True)
         return json_response.copy()
