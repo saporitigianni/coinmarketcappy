@@ -35,7 +35,7 @@ def get_tickers(start=None, limit=None, convert=None, out_file=None, wformat='js
     response = requests.get(url)
     json_response = response.json()
     if out_file:
-        write_to_file(json_response, out_file, wformat)
+        write_to_file(json_response, out_file, 'json')
     return json_response
 
 
@@ -63,7 +63,7 @@ def get_ticker(name=None, convert=None, out_file=None, wformat='json'):
     response = requests.get(url)
     json_response = response.json()[0]
     if out_file:
-        write_to_file(json_response, out_file, wformat)
+        write_to_file(json_response, out_file, wformat, simple=True)
     return json_response
 
 
@@ -90,5 +90,5 @@ def get_global_data(convert=None, out_file=None, wformat='json'):
     response = requests.get(url)
     json_response = response.json()
     if out_file:
-        write_to_file(json_response, out_file, wformat)
+        write_to_file(json_response, out_file, wformat, simple=True)
     return json_response

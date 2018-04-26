@@ -38,8 +38,10 @@ def historical_snapshots(dates=default_dates, out_file=None, cache_file=None, rf
     :param rate_limit: time to wait between requests to coinmarketcap
     :return: a nested dictionary in the format {date: {rank: {info_about_coin}}} where there can be many dates
         each with many ranks and each rank with the info about that particular coin
+    :return: a dictionary with a key for every date requested (e.g. "20180401", "20130428", etc)
+        each key maps to a list containing a list of each coins attributes in the following order:
+        [rank, symbol, name, market_cap, price, circulating_supply, 24hr_volume]
     """
-    # TODO option to return this as a dict of sorted lists
     if dates == 'all':
         print('Fetching all dates...')
         dates = available_snaps()
@@ -109,45 +111,67 @@ def _retrieve_snaps(dates=default_dates, file=None, rformat=None, rate_limit=RAT
         response = requests.get(SNAPS_URL + str(dates[i]))
         soup = bs4.BeautifulSoup(response.content, 'html.parser')
         tr = soup.find_all('tr')
-        # Parses the all coins which should be more than enough to find the top 10 PoS (0th entry is dummy)
+        # Parses the all coins (0th entry is dummy)
         for y in range(1, len(tr)):
             td = tr[y].find_all('td')
             rank = td[0].get_text().strip()
             symbol, name = td[1].get_text().strip().lower().split('\n')
             # Add dates and token info broken into categories (rest of function)
             if dates[i] not in fetched_data:
-                fetched_data[dates[i]] = dict()
-            fetched_data[dates[i]][rank] = dict()
-            fetched_data[dates[i]][rank]["symbol"] = symbol
-            fetched_data[dates[i]][rank]["name"] = name
+                fetched_data[dates[i]] = list()
+            temp_info = [rank, symbol, name]
             try:  # MARKET CAP CAN BE A QUESTION MARK
-                fetched_data[dates[i]][rank]["market_cap"] =\
-                    int(td[3].get_text().strip('$' + whitespace).replace(',', ''))
+                temp_info.append(int(td[3].get_text().strip('$' + whitespace).replace(',', '')))
             except ValueError:
-                fetched_data[dates[i]][rank]["market_cap"] =\
-                    td[3].get_text().strip('$' + whitespace).replace(',', '')
-            fetched_data[dates[i]][rank]["price"] = float(td[4].get_text().strip('$' + whitespace).replace(',', ''))
+                temp_info.append(td[3].get_text().strip('$' + whitespace).replace(',', ''))
+            temp_info.append(float(td[4].get_text().strip('$' + whitespace).replace(',', '')))
             try:  # CIRCULATING SUPPLY CAN BE A QUESTION MARK
-                fetched_data[dates[i]][rank]["circulating_supply"] =\
-                    int(td[5].get_text().strip('*' + whitespace).replace(',', ''))
+                temp_info.append(int(td[5].get_text().strip('*' + whitespace).replace(',', '')))
             except ValueError:
-                fetched_data[dates[i]][rank]["circulating_supply"] =\
-                    td[5].get_text().strip('*' + whitespace).replace(',', '')
+                temp_info.append(td[5].get_text().strip('*' + whitespace).replace(',', ''))
             try:  # 24hr_vol CAN BE THE STRING 'Low Vol'
-                fetched_data[dates[i]][rank]["24hr_vol"] =\
-                    int(td[6].get_text().strip('$' + whitespace).replace(',', ''))
+                temp_info.append(int(td[6].get_text().strip('$' + whitespace).replace(',', '')))
             except ValueError:
-                fetched_data[dates[i]][rank]["24hr_vol"] = td[6].get_text().strip('$' + whitespace).replace(',', '')
-        time.sleep(rate_limit)
+                temp_info.append(td[6].get_text().strip('$' + whitespace).replace(',', ''))
+            fetched_data[dates[i]].append(temp_info.copy())
+            temp_info.clear()
+        if (total_length > 1) and (i != (total_length - 1)):
+            time.sleep(rate_limit)
     return fetched_data.copy()
+
+    #         if dates[i] not in fetched_data:
+    #             fetched_data[dates[i]] = dict()
+    #         fetched_data[dates[i]][rank] = dict()
+    #         fetched_data[dates[i]][rank]["symbol"] = symbol
+    #         fetched_data[dates[i]][rank]["name"] = name
+    #         try:  # MARKET CAP CAN BE A QUESTION MARK
+    #             fetched_data[dates[i]][rank]["market_cap"] =\
+    #                 int(td[3].get_text().strip('$' + whitespace).replace(',', ''))
+    #         except ValueError:
+    #             fetched_data[dates[i]][rank]["market_cap"] =\
+    #                 td[3].get_text().strip('$' + whitespace).replace(',', '')
+    #         fetched_data[dates[i]][rank]["price"] = float(td[4].get_text().strip('$' + whitespace).replace(',', ''))
+    #         try:  # CIRCULATING SUPPLY CAN BE A QUESTION MARK
+    #             fetched_data[dates[i]][rank]["circulating_supply"] =\
+    #                 int(td[5].get_text().strip('*' + whitespace).replace(',', ''))
+    #         except ValueError:
+    #             fetched_data[dates[i]][rank]["circulating_supply"] =\
+    #                 td[5].get_text().strip('*' + whitespace).replace(',', '')
+    #         try:  # 24hr_vol CAN BE THE STRING 'Low Vol'
+    #             fetched_data[dates[i]][rank]["24hr_vol"] =\
+    #                 int(td[6].get_text().strip('$' + whitespace).replace(',', ''))
+    #         except ValueError:
+    #             fetched_data[dates[i]][rank]["24hr_vol"] = td[6].get_text().strip('$' + whitespace).replace(',', '')
+    #     time.sleep(rate_limit)
+    # return fetched_data.copy()
 
 
 def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None, wformat='json'):
     """
     Retrieves the "Percentage of Market Capitalization (Dominance)" chart data from conmarketcap.com
 
-    :param start: starting date to retrieve for, in epoch time
-    :param end: end date to retrieve for, in epoch time
+    :param start: int, starting date to retrieve for, in epoch time
+    :param end: int, end date to retrieve for, in epoch time
     :param formatted: either 'alt' or 'raw'. If 'alt' then all alcoins are summed up. If 'raw' then the
         coinmarketcap format is kept (e.g. top 10 + others)
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
@@ -161,8 +185,6 @@ def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None,
 
     url = start_end(start, end, DOMINANCE_URL)
     response = requests.get(url)
-    # TODO if response code not 200 then handle
-    # TODO make this into a function
     json_response = response.json()
 
     # If raw, return as is rounded to 2 decimals
@@ -174,7 +196,7 @@ def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None,
             for x in json_response:
                 json_response[x] = [[epoch_to_date(x[0]), round(x[1], 2)] for x in json_response[x]]
         if out_file:
-            write_to_file(json_response, out_file, wformat)
+            write_to_file(json_response, out_file, wformat, dominance=True)
         return json_response.copy()
 
     # If alt, sum all the altcoins and round to 2 decimals
@@ -199,7 +221,7 @@ def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None,
                 result[x] = [[epoch_to_date(y), round(result[x][y], 2)] for y in sorted(result[x].keys())]
             result['bitcoin'] = [[epoch_to_date(x[0]), round(x[1], 2)] for x in btc_temp]
         if out_file:
-            write_to_file(json_response, out_file, wformat)
+            write_to_file(result, out_file, wformat, dominance=True)
         return result.copy()
     else:
         raise ValueError('Please enter a valid return format. Valid options are "raw" or "alt"')
@@ -209,13 +231,14 @@ def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False, out_f
     """
     Retrieves the "Total Market Capitalization" chart data from conmarketcap.com (option to exclude bitcoin)
 
-    :param start: starting date to retrieve for, in epoch time
-    :param end: end date to retrieve for, in epoch time
+    :param start: int, starting date to retrieve for, in epoch time
+    :param end: int, end date to retrieve for, in epoch time
     :param exclude_btc: if True, the "Total Market Capitalization (Excluding Bitcoin)" is scraped instead
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
     :param out_file: if provided, info will be saved to this file (local file name or absolute path)
     :param wformat: format to use when writing to output file ('json' by default)
-    :return: the retrieved data as a list of pairs [[date, market_cap], [date, market_cap]...]
+    :return: a dictionary with the keys: "market_cap_by_available_supply" and "volume_usd"
+        each key maps to a list of pairs [[date, market_cap (or volume)], [date, market_cap (or volume)]...]
     """
     if (type(epoch) != bool) or (type(exclude_btc) != bool):
         raise ValueError('Please make sure you are using a boolean for the epoch and exclude_btc parameters')
@@ -226,13 +249,15 @@ def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False, out_f
 
     if epoch:
         if out_file:
-            write_to_file(json_response['market_cap_by_available_supply'], out_file, wformat)
-        return json_response['market_cap_by_available_supply'].copy()
+            write_to_file(json_response, out_file, wformat, dominance=True)
+        return json_response.copy()
     else:
-        temp = [[epoch_to_date(x[0]), x[1]] for x in json_response['market_cap_by_available_supply']]
+        for y in json_response:
+            temp = [[epoch_to_date(x[0]), x[1]] for x in json_response[y]]
+            json_response[y] = temp.copy()
         if out_file:
-            write_to_file(temp, out_file, wformat)
-        return temp.copy()
+            write_to_file(json_response, out_file, wformat, dominance=True)
+        return json_response.copy()
 
 
 def available_snaps(out_file=None, wformat=None):
@@ -258,11 +283,23 @@ def available_snaps(out_file=None, wformat=None):
                     dates.add(match.group(1))
     ret = sorted(list(dates))
     if out_file:
-        write_to_file(ret, out_file, wformat)
+        write_to_file(ret, out_file, wformat, simple=True)
     return ret.copy()
 
 
 def get_ticker_historical(name=None, start=None, end=None, epoch=False, out_file=None, wformat='json'):
+    """
+    Retrieves the historical data for a single cryptocurrency, only available in USD or BTC prices
+
+    :param name: name of the crypto to retrieve. e.g. bitcoin (not btc), ripple (not xrp)...
+    :param start: int, starting date to retrieve for, in epoch time
+    :param end: int, end date to retrieve for, in epoch time
+    :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
+    :param out_file: if provided, info will be saved to this file (local file name or absolute path)
+    :param wformat: format to use when writing to output file ('json' by default)
+    :return: a dictionary with the keys: "market_cap_by_available_supply", "price_btc", "price_usd", and "volume_usd"
+        each key maps to a list of pairs [[date, market_cap (or volume, ect)], [date, market_cap (or volume, ect)]...]
+    """
     if not name:
         raise ValueError('Please provide the name of a coin/token to retrieve data for')
 
@@ -273,10 +310,12 @@ def get_ticker_historical(name=None, start=None, end=None, epoch=False, out_file
 
     if epoch:
         if out_file:
-            write_to_file(json_response['market_cap_by_available_supply'], out_file, wformat)
-        return json_response['market_cap_by_available_supply'].copy()
+            write_to_file(json_response, out_file, wformat, dominance=True)
+        return json_response.copy()
     else:
-        temp = [[epoch_to_date(x[0]), x[1]] for x in json_response['market_cap_by_available_supply']]
+        for y in json_response:
+            temp = [[epoch_to_date(x[0]), x[1]] for x in json_response[y]]
+            json_response[y] = temp.copy()
         if out_file:
-            write_to_file(temp, out_file, wformat)
-        return temp.copy()
+            write_to_file(json_response, out_file, wformat, dominance=True)
+        return json_response.copy()

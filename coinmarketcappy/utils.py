@@ -25,7 +25,7 @@ def start_end(start=None, end=None, url=None):
     :return: url/start/end/
     """
     # Checks to make sure that either start/end are both specified or neither is specified
-    if start and end:
+    if (type(start) == int) and (type(end) == int):
         dates = '{}/{}/'.format(start, end)
     elif not (start and end):
         dates = None
@@ -52,13 +52,15 @@ def export_json(data=None, file=None):
 #     write_to_file(data, file, wformat='numpy')
 
 
-def write_to_file(data=None, file=None, wformat='json'):
+def write_to_file(data=None, file=None, wformat='json', simple=False, dominance=False):
     """
     Writes json or csv data to file
 
     :param data: json format data to write to file
     :param file: file to write to (local file or absolute path to file)
     :param wformat: format to write to file on
+    :param simple: only set to true when writing a simple list or dict to csv
+    :param dominance: only set to true when writing dominance
     :return: None
     """
     if data is None:
@@ -74,7 +76,7 @@ def write_to_file(data=None, file=None, wformat='json'):
             json.dump(data, f, ensure_ascii=False)
     elif wformat == 'csv':
         with open(file, 'w') as f:
-            f.write(json_to_csv(data))
+            f.write(json_to_csv(data, simple, dominance))
     else:
         raise ValueError("Please enter a valid wformat. Valid values are 'json' and 'csv'.")
 
@@ -103,33 +105,96 @@ def read_from_file(file=None, rformat='json'):
         raise ValueError("Please enter a valid rformat. Valid values are 'json' and 'csv'.")
 
 
-def json_to_csv(data=None):
+# def json_to_csv(data=None):
+#     """
+#     Specify data to convert to csv format (not both)
+#
+#     :param data: json formatted data to convert to csv format
+#     :return: csv format data
+#     """
+#     # Verifies that one and only one of the input types is specified
+#     if data is None:
+#         raise ValueError('Data missing. Please specify the data to convert.')
+#
+#     output = ''
+#     # Organizes the dates so that the output csv file is properly organized as well
+#     dates = list(data.keys())
+#     dates.sort()
+#
+#     # Goes through each date (outer loop) and each rank (inner) to convert to csv format
+#     for x in data:
+#         output += x + '\n'
+#         for y in data[x]:
+#             output += str(y) + ', '
+#             output += data[x][y]['symbol'] + ', '
+#             output += data[x][y]['name'] + ', '
+#             output += str(data[x][y]['market_cap']) + ', '
+#             output += str(data[x][y]['price']) + ', '
+#             output += str(data[x][y]['circulating_supply']) + ', '
+#             output += str(data[x][y]['24hr_vol']) + '\n'
+#     return output
+
+
+def json_to_csv(data=None, simple=False, dominance=False):
     """
     Specify data to convert to csv format (not both)
 
     :param data: json formatted data to convert to csv format
+    :param simple: only set to True when writing a simple list or dict to csv
+    :param dominance: only set to True when writing the dominance
     :return: csv format data
     """
     # Verifies that one and only one of the input types is specified
     if data is None:
         raise ValueError('Data missing. Please specify the data to convert.')
 
+    # write data as a table in csv. top row contains headers, first one being 'dates'
+    if dominance:
+        output = 'date,'
+        temp = data.popitem()
+        output += temp[0] + '\n'
+        for x in temp[1]:
+            output += ','.join(map(str, x)) + '\n'
+        output = output.split('\n')
+        for x in data:
+            output[0] = ','.join([output[0], x])
+            for i, y in enumerate(data[x]):
+                output[i+1] = ','.join([output[i+1], str(y[1])])
+        return '\n'.join(output)
+
     output = ''
+    if simple:
+        if type(data) == list:
+            output = '\n'.join(data)
+        elif type(data) == dict:
+            for x in data:
+                output += '{},{}\n'.format(x, data[x])
+        else:
+            raise ValueError('Only set the parameter "simple" to True when writing a simple list or dict.')
+        return output
+
     # Organizes the dates so that the output csv file is properly organized as well
-    dates = list(data.keys())
-    dates.sort()
+    keys = list(data.keys())
+    keys.sort()
+    # TODO fix write to file for historical_snapshots
+    # TODO write custom function to export to csv (get_tickers)
 
     # Goes through each date (outer loop) and each rank (inner) to convert to csv format
-    for x in data:
+    for x in keys:
         output += x + '\n'
         for y in data[x]:
-            output += str(y) + ', '
-            output += data[x][y]['symbol'] + ', '
-            output += data[x][y]['name'] + ', '
-            output += str(data[x][y]['market_cap']) + ', '
-            output += str(data[x][y]['price']) + ', '
-            output += str(data[x][y]['circulating_supply']) + ', '
-            output += str(data[x][y]['24hr_vol']) + '\n'
+            output += ','.join(map(str, y)) + '\n'
+            # for z in y:
+            #     output += str(z) + ', '
+            # else:
+            #     output += '\n'
+            # output += str(y) + ', '
+            # output += data[x][y]['symbol'] + ', '
+            # output += data[x][y]['name'] + ', '
+            # output += str(data[x][y]['market_cap']) + ', '
+            # output += str(data[x][y]['price']) + ', '
+            # output += str(data[x][y]['circulating_supply']) + ', '
+            # output += str(data[x][y]['24hr_vol']) + '\n'
     return output
 
 
