@@ -40,12 +40,12 @@ def start_end(start=None, end=None, url=None):
     return final_url
 
 
-def export_csv(data=None, file=None):
-    write_to_file(data, file, wformat='csv')
+def export_csv(data=None, file=None, simple=False, cmplex=False, tickers=False):
+    write_to_file(data, file, wformat='csv', simple=simple, cmplex=cmplex, tickers=tickers)
 
 
-def export_json(data=None, file=None):
-    write_to_file(data, file, wformat='json')
+def export_json(data=None, file=None, simple=False, cmplex=False, tickers=False):
+    write_to_file(data, file, wformat='json', simple=simple, cmplex=cmplex, tickers=tickers)
 
 
 def write_to_file(data=None, file=None, wformat='json', simple=False, cmplex=False, tickers=False):
@@ -55,8 +55,9 @@ def write_to_file(data=None, file=None, wformat='json', simple=False, cmplex=Fal
     :param data: json format data to write to file
     :param file: file to write to (local file or absolute path to file)
     :param wformat: format to write to file on
-    :param simple: only set to true when writing a simple list or dict to csv
-    :param dominance: only set to true when writing dominance
+    :param simple: only set to True when writing a simple list or dict to csv
+    :param cmplex: only set to True when writing complex structures (dict with a list of lists as value)
+    :param tickers: only set to True when writing multiple tickers
     :return: None
     """
     if data is None:
@@ -137,7 +138,7 @@ def json_to_csv(data=None, simple=False, cmplex=False, tickers=False):
 
     :param data: json formatted data to convert to csv format
     :param simple: only set to True when writing a simple list or dict to csv
-    :param cmplex: only set to True when writing the dominance
+    :param cmplex: only set to True when writing complex structures (dict with a list of lists as value)
     :param tickers: only set to True when writing the multiple tickers
     :return: csv format data
     """

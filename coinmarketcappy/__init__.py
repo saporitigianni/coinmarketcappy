@@ -32,7 +32,6 @@ utils = [
     'export_to_csv',
     'export_to_json',
     'write_to_file',
-    'read_from_file',
 ]
 
 __all__ = scrape + retrieve + utils

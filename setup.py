@@ -7,8 +7,8 @@ def readme():
         return '\n' + f.read()
 
 
-MAJOR               = 0
-MINOR               = 6
+MAJOR               = 1
+MINOR               = 0
 MICRO               = 0
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -18,7 +18,7 @@ setup(name='coinmarketcappy',
       description='Python API wrapper and scraper for coinmarketcappy data',
       long_description=readme(),
       classifiers=[
-          'Development Status :: 5 - Alpha',
+          'Development Status :: 5 - Production/Stable',
           'Intended Audience :: Developers',
           'Intended Audience :: Financial and Insurance Industry',
           'License :: OSI Approved :: MIT License',
