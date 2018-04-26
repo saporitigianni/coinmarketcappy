@@ -24,11 +24,19 @@ To install coinmarketcappy, simply use pip:
 
     $ pip install coinmarketcappy
 
-or install from source:
+or install directly from source to include latest changes:
 
 .. code:: bash
 
     $ pip install git+https://github.com/saporitigianni/coinmarketcappy.git
+
+or clone and then install:
+
+.. code:: bash
+
+    $ git clone https://github.com/saporitigianni/coinmarketcappy.git
+    $ cd coinmarketcappy
+    $ python3 setup.py install
 
 Usage
 -----
@@ -99,6 +107,6 @@ trackers, chat rooms, and mailing lists is expected to follow the
 Buy me a coffee?
 ----------------
 
-|ETH 0xaD1F09626b9B8e701D5f0F4a237193Df73d3C445
-|BTC 199zsVqCusefv8yjdYQhUQZmLCyh75dqNV
-|LTC LUBqs7VxC43ttPsQuM1jaZFmshKTAU1Rs9
+| ETH 0xaD1F09626b9B8e701D5f0F4a237193Df73d3C445
+| BTC 199zsVqCusefv8yjdYQhUQZmLCyh75dqNV
+| LTC LUBqs7VxC43ttPsQuM1jaZFmshKTAU1Rs9
