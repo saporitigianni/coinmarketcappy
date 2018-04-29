@@ -42,7 +42,7 @@ Usage
 -----
 Every method supports the arguments 'out_file' and 'wformat' to save the information to a file.
 If 'outfile' is present then the info will be saved to that file. Use absolute path unless you want to save locally.
-If 'wformat' is not specified, it will default to 'json' ('csv' also supported for historical_snapshots)
+If 'wformat' is not specified, it will default to 'json' ('csv' also supported)
 
 To get Historical Snapshots (taken every Sunday since 20130428) or Global Charts data:
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""

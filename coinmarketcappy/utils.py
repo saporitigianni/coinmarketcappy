@@ -102,36 +102,6 @@ def read_historical_snaps(file=None, rformat='json'):
         raise ValueError("Please enter a valid rformat. Valid values are 'json' and 'csv'.")
 
 
-# def json_to_csv(data=None):
-#     """
-#     Specify data to convert to csv format (not both)
-#
-#     :param data: json formatted data to convert to csv format
-#     :return: csv format data
-#     """
-#     # Verifies that one and only one of the input types is specified
-#     if data is None:
-#         raise ValueError('Data missing. Please specify the data to convert.')
-#
-#     output = ''
-#     # Organizes the dates so that the output csv file is properly organized as well
-#     dates = list(data.keys())
-#     dates.sort()
-#
-#     # Goes through each date (outer loop) and each rank (inner) to convert to csv format
-#     for x in data:
-#         output += x + '\n'
-#         for y in data[x]:
-#             output += str(y) + ', '
-#             output += data[x][y]['symbol'] + ', '
-#             output += data[x][y]['name'] + ', '
-#             output += str(data[x][y]['market_cap']) + ', '
-#             output += str(data[x][y]['price']) + ', '
-#             output += str(data[x][y]['circulating_supply']) + ', '
-#             output += str(data[x][y]['24hr_vol']) + '\n'
-#     return output
-
-
 def json_to_csv(data=None, simple=False, cmplex=False, tickers=False):
     """
     Specify data to convert to csv format (not both)
@@ -142,7 +112,6 @@ def json_to_csv(data=None, simple=False, cmplex=False, tickers=False):
     :param tickers: only set to True when writing the multiple tickers
     :return: csv format data
     """
-    # Verifies that one and only one of the input types is specified
     if data is None:
         raise ValueError('Data missing. Please specify the data to convert.')
 
@@ -165,22 +134,19 @@ def json_to_csv(data=None, simple=False, cmplex=False, tickers=False):
         if type(data) == list:
             output = '\n'.join(data)
         elif type(data) == dict:
-            for x in data:
-                output += '{},{}\n'.format(x, data[x])
+            keys = data.keys()
+            output += ','.join(keys) + '\n'
+            output += ','.join(str(data[x]) for x in keys) + '\n'
         else:
-            raise ValueError('Only set the parameter "simple" to True when writing a simple list or dict.')
+            raise ValueError('Only set the parameter "simple" to True when writing a simple'
+                             ' (nothing nested) list or dict.')
         return output
 
     if tickers:
         keys = data[0].keys()
         output += ','.join(keys) + '\n'
         for entry in data:
-            temp = ''
-            for y in keys:
-                temp += str(entry[y]) + ','
-            temp = temp[:-1] + '\n'
-            output += temp
-            # output += '{},{}\n'.format(y, entry[y])
+            output += ','.join(str(entry[x]) for x in keys) + '\n'
         return output
 
     # Organizes the dates so that the output csv file is properly organized as well
@@ -215,32 +181,3 @@ def csv_to_json(data=None):
         else:
             converted[base].append(split)
     return converted
-
-
-# def csv_to_json(data=None):
-#     """
-#     Takes properly formatted csv data and returns it in json format
-#
-#     :param data: csv formatted data to convert to json format
-#     :return: json format data
-#     """
-#     if data is None:
-#         raise ValueError('Data missing. Please specify the data to convert.')
-#
-#     converted = dict()
-#     base = None
-#     for line in data.splitlines():
-#         split = [x.strip() for x in line.split(',')]
-#         if len(split) == 1:
-#             base = split[0]
-#             converted[base] = dict()
-#             continue
-#         else:
-#             converted[base][split[0]] = dict()
-#             converted[base][split[0]]['symbol'] = split[1]
-#             converted[base][split[0]]['name'] = split[2]
-#             converted[base][split[0]]['market_cap'] = split[3]
-#             converted[base][split[0]]['price'] = split[4]
-#             converted[base][split[0]]['circulating_supply'] = split[5]
-#             converted[base][split[0]]['24hr_vol'] = split[6]
-#     return converted

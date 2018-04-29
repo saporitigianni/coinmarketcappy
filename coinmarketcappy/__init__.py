@@ -10,7 +10,6 @@ from .utils import epoch_to_date
 from .utils import export_csv
 from .utils import export_json
 from .utils import write_to_file
-from .utils import read_from_file
 
 
 scrape = [

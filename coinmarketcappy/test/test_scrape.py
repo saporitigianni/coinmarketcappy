@@ -6,13 +6,13 @@ temp = cmc.get_ticker_historical(name='bitcoin', out_file='test', wformat='csv',
 print(temp)
 time.sleep(6)
 
-temp = cmc.available_snaps('test', 'csv')
+temp = cmc.available_snaps('test1', 'csv')
 print(temp)
 time.sleep(6)
 
 temp = cmc.historical_snapshots(['20180401', '20180408'],
-                                'historical_snaps.csv',
-                                'historical_snaps.json',
+                                'test2.csv',
+                                # 'historical_snaps.json',
                                 rformat='json', wformat='csv')
 for x in temp:
     print(x)
@@ -20,7 +20,7 @@ for x in temp:
         print(y)
 time.sleep(6)
 
-dominance = cmc.dominance(out_file='test', wformat='csv', formatted='raw', epoch=False)
+dominance = cmc.dominance(out_file='test3', wformat='csv', formatted='raw', epoch=False)
 for x in dominance:
     print(x, dominance[x])
 time.sleep(6)
@@ -30,7 +30,7 @@ for x in dominance:
     print(x, dominance[x])
 time.sleep(6)
 
-total_mc = cmc.total_market_cap(exclude_btc=False, epoch=False, out_file='test', wformat='csv')
+total_mc = cmc.total_market_cap(exclude_btc=False, epoch=False, out_file='test4', wformat='csv')
 print(total_mc)
 time.sleep(6)
 
