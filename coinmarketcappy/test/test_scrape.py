@@ -1,5 +1,6 @@
 import coinmarketcappy as cmc
 import time
+import datetime
 
 
 temp = cmc.get_ticker_historical(name='bitcoin', out_file='test', wformat='csv', epoch=True)
@@ -25,7 +26,8 @@ for x in dominance:
     print(x, dominance[x])
 time.sleep(6)
 
-dominance = cmc.dominance(start=1367121600000, end=1519975624438, formatted='alt', epoch=False)
+dominance = cmc.dominance(start=datetime.datetime(2018, 4, 3, 2, 40, 1), end='2018-05-01-16-02-03',
+                          out_file='test3', wformat='csv', formatted='alt', epoch=False)
 for x in dominance:
     print(x, dominance[x])
 time.sleep(6)

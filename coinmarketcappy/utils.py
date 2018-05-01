@@ -1,12 +1,13 @@
 import time
 import json
+from datetime import datetime
 
 
 def epoch_to_date(date=None):
     """
     Converts the epoch time to date and time
 
-    :param date: epoch to convert
+    :param date: epoch in milliseconds to convert
     :return: date in the format '%Y-%m-%d %H:%M:%S'
     """
     if date is None:
@@ -19,14 +20,42 @@ def start_end(start=None, end=None, url=None):
     Checks to make sure that either start/end are both specified or neither is specified and concatenates
     them with the provided url
 
-    :param start: epoch time
-    :param end: epoch time
+    :param start: time as an epoch in milliseconds (if you're not sure just add 3 zeros at the end) or a datetime
+        object or a string in the format yyyy-mm-dd[-hh-mm-ss] (hours, minutes and second optional and in most cases
+        won't be used)
+    :param end: time as an epoch in milliseconds (if you're not sure just add 3 zeros at the end) or a datetime
+        object or a string in the format yyyy-mm-dd[-hh-mm-ss] (hours, minutes and second optional and in most cases
+        won't be used)
     :param url: base url to concatenate start and end with
     :return: url/start/end/
     """
     # Checks to make sure that either start/end are both specified or neither is specified
-    if (type(start) == int) and (type(end) == int):
+    if start and end:
+        # start and end parameters are evaluated separately to allow for different input formats if needed
+        if type(start) == int:
+            pass
+        elif type(start) == datetime:
+            start = int(time.mktime(start.timetuple())) * 1000
+        else:
+            temp_start = start.split('-')
+            if (len(temp_start) >= 3) and (len(temp_start) <= 6):
+                start = int(time.mktime(datetime(*map(int, temp_start)).timetuple())) * 1000
+            else:
+                raise ValueError('Please enter a valid format for the start date (e.g. yyyy-mm-dd-hh-mm-ss).')
+
+        if type(end) == int:
+            pass
+        elif type(end) == datetime:
+            end = int(time.mktime(end.timetuple())) * 1000
+        else:
+            temp_end = end.split('-')
+            if (len(temp_end) >= 3) and (len(temp_end) <= 6):
+                end = int(time.mktime(datetime(*map(int, temp_end)).timetuple())) * 1000
+            else:
+                raise ValueError('Please enter a valid format for the end date (e.g. yyyy-mm-dd-hh-mm-ss).')
+
         dates = '{}/{}/'.format(start, end)
+
     elif not (start and end):
         dates = None
     else:
@@ -88,6 +117,9 @@ def read_historical_snaps(file=None, rformat='json'):
     """
     if file is None:
         raise Exception('File name missing. Please specify the name of a file to read from.')
+
+    if not file.endswith('.{}'.format(rformat)):
+        file += '.{}'.format(rformat)
 
     if rformat == 'json':
         with open(file, 'r') as f:

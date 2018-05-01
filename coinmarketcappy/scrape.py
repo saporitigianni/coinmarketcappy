@@ -144,8 +144,12 @@ def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None,
     """
     Retrieves the "Percentage of Market Capitalization (Dominance)" chart data from conmarketcap.com
 
-    :param start: int, starting date to retrieve for, in epoch time
-    :param end: int, end date to retrieve for, in epoch time
+    :param start: time as an epoch in milliseconds (if you're not sure just add 3 zeros at the end) or a datetime
+        object or a string in the format yyyy-mm-dd[-hh-mm-ss] (hours, minutes and second optional and in most cases
+        won't be used)
+    :param end: time as an epoch in milliseconds (if you're not sure just add 3 zeros at the end) or a datetime
+        object or a string in the format yyyy-mm-dd[-hh-mm-ss] (hours, minutes and second optional and in most cases
+        won't be used)
     :param formatted: either 'alt' or 'raw'. If 'alt' then all alcoins are summed up. If 'raw' then the
         coinmarketcap format is kept (e.g. top 10 + others)
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
@@ -205,8 +209,12 @@ def total_market_cap(start=None, end=None, exclude_btc=False, epoch=False, out_f
     """
     Retrieves the "Total Market Capitalization" chart data from conmarketcap.com (option to exclude bitcoin)
 
-    :param start: int, starting date to retrieve for, in epoch time
-    :param end: int, end date to retrieve for, in epoch time
+    :param start: time as an epoch in milliseconds (if you're not sure just add 3 zeros at the end) or a datetime
+        object or a string in the format yyyy-mm-dd[-hh-mm-ss] (hours, minutes and second optional and in most cases
+        won't be used)
+    :param end: time as an epoch in milliseconds (if you're not sure just add 3 zeros at the end) or a datetime
+        object or a string in the format yyyy-mm-dd[-hh-mm-ss] (hours, minutes and second optional and in most cases
+        won't be used)
     :param exclude_btc: if True, the "Total Market Capitalization (Excluding Bitcoin)" is scraped instead
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
     :param out_file: if provided, info will be saved to this file (local file name or absolute path)
@@ -266,8 +274,12 @@ def get_ticker_historical(name=None, start=None, end=None, epoch=False, out_file
     Retrieves the historical data for a single cryptocurrency, only available in USD or BTC prices
 
     :param name: name of the crypto to retrieve. e.g. bitcoin (not btc), ripple (not xrp)...
-    :param start: int, starting date to retrieve for, in epoch time
-    :param end: int, end date to retrieve for, in epoch time
+    :param start: time as an epoch in milliseconds (if you're not sure just add 3 zeros at the end) or a datetime
+        object or a string in the format yyyy-mm-dd[-hh-mm-ss] (hours, minutes and second optional and in most cases
+        won't be used)
+    :param end: time as an epoch in milliseconds (if you're not sure just add 3 zeros at the end) or a datetime
+        object or a string in the format yyyy-mm-dd[-hh-mm-ss] (hours, minutes and second optional and in most cases
+        won't be used)
     :param epoch: True if you want the dates returned to be in epoch format, False if you want datetime format
     :param out_file: if provided, info will be saved to this file (local file name or absolute path)
     :param wformat: format to use when writing to output file ('json' by default)
