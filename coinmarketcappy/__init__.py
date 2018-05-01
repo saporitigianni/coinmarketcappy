@@ -28,8 +28,8 @@ retrieve = [
 
 utils = [
     'epoch_to_date',
-    'export_to_csv',
-    'export_to_json',
+    'export_csv',
+    'export_json',
     'write_to_file',
 ]
 

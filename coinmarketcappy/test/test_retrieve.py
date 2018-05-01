@@ -12,5 +12,3 @@ print(ticker['rank'])
 glob = cmc.get_global_data(out_file='test2', wformat='csv')
 print(glob)
 print(glob['active_markets'])
-
-# TODO update readme: all methods support the 'epoch' parameter (except for historical_snapshots and available snaps)

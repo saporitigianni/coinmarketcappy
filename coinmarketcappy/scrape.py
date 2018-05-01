@@ -139,32 +139,6 @@ def _retrieve_snaps(dates=default_dates, file=None, rformat=None, rate_limit=RAT
             time.sleep(rate_limit)
     return fetched_data.copy()
 
-    #         if dates[i] not in fetched_data:
-    #             fetched_data[dates[i]] = dict()
-    #         fetched_data[dates[i]][rank] = dict()
-    #         fetched_data[dates[i]][rank]["symbol"] = symbol
-    #         fetched_data[dates[i]][rank]["name"] = name
-    #         try:  # MARKET CAP CAN BE A QUESTION MARK
-    #             fetched_data[dates[i]][rank]["market_cap"] =\
-    #                 int(td[3].get_text().strip('$' + whitespace).replace(',', ''))
-    #         except ValueError:
-    #             fetched_data[dates[i]][rank]["market_cap"] =\
-    #                 td[3].get_text().strip('$' + whitespace).replace(',', '')
-    #         fetched_data[dates[i]][rank]["price"] = float(td[4].get_text().strip('$' + whitespace).replace(',', ''))
-    #         try:  # CIRCULATING SUPPLY CAN BE A QUESTION MARK
-    #             fetched_data[dates[i]][rank]["circulating_supply"] =\
-    #                 int(td[5].get_text().strip('*' + whitespace).replace(',', ''))
-    #         except ValueError:
-    #             fetched_data[dates[i]][rank]["circulating_supply"] =\
-    #                 td[5].get_text().strip('*' + whitespace).replace(',', '')
-    #         try:  # 24hr_vol CAN BE THE STRING 'Low Vol'
-    #             fetched_data[dates[i]][rank]["24hr_vol"] =\
-    #                 int(td[6].get_text().strip('$' + whitespace).replace(',', ''))
-    #         except ValueError:
-    #             fetched_data[dates[i]][rank]["24hr_vol"] = td[6].get_text().strip('$' + whitespace).replace(',', '')
-    #     time.sleep(rate_limit)
-    # return fetched_data.copy()
-
 
 def dominance(start=None, end=None, formatted='raw', epoch=False, out_file=None, wformat='json'):
     """

@@ -41,8 +41,11 @@ or clone and then install:
 Usage
 -----
 Every method supports the arguments 'out_file' and 'wformat' to save the information to a file.
-If 'outfile' is present then the info will be saved to that file. Use absolute path unless you want to save locally.
+If 'out_file' is present then the info will be saved to that file. Use absolute path unless you want to save locally.
 If 'wformat' is not specified, it will default to 'json' ('csv' also supported)
+
+All methods except for available_snaps and historical_snapshots also support the 'epoch' parameter. If True it will
+return all times as epochs, if False it will return them as date and time (e.g. '2018-05-01 00:19:31')
 
 To get Historical Snapshots (taken every Sunday since 20130428) or Global Charts data:
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
