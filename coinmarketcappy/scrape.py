@@ -115,7 +115,7 @@ def _retrieve_snaps(dates=default_dates, file=None, rformat=None, rate_limit=RAT
         for y in range(1, len(tr)):
             td = tr[y].find_all('td')
             rank = td[0].get_text().strip()
-            symbol, name = td[1].get_text().strip().lower().split('\n')
+            symbol, line, name = td[1].get_text().strip().lower().split('\n')
             # Add dates and token info broken into categories (rest of function)
             if dates[i] not in fetched_data:
                 fetched_data[dates[i]] = list()
